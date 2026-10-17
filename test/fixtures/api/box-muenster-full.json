@@ -1,0 +1,137 @@
+{
+  "_id": "5fc8c893fab469001ce0b3b0",
+  "createdAt": "2020-12-03T11:14:27.537Z",
+  "updatedAt": "2020-12-03T11:14:27.537Z",
+  "name": "Test",
+  "currentLocation": {
+    "timestamp": "2020-12-03T11:14:27.532Z",
+    "coordinates": [7.607942, 51.976097],
+    "type": "Point"
+  },
+  "exposure": "indoor",
+  "sensors": [
+    {
+      "title": "Temperatur",
+      "unit": "°C",
+      "sensorType": "HDC1080",
+      "icon": "osem-thermometer",
+      "_id": "5fc8c893fab469001ce0b3c0"
+    },
+    {
+      "title": "rel. Luftfeuchte",
+      "unit": "%",
+      "sensorType": "HDC1080",
+      "icon": "osem-humidity",
+      "_id": "5fc8c893fab469001ce0b3bf"
+    },
+    {
+      "title": "Luftdruck",
+      "unit": "hPa",
+      "sensorType": "BMP280",
+      "icon": "osem-barometer",
+      "_id": "5fc8c893fab469001ce0b3be"
+    },
+    {
+      "title": "Beleuchtungsstärke",
+      "unit": "lx",
+      "sensorType": "TSL45315",
+      "icon": "osem-brightness",
+      "_id": "5fc8c893fab469001ce0b3bd"
+    },
+    {
+      "title": "UV-Intensität",
+      "unit": "μW/cm²",
+      "sensorType": "VEML6070",
+      "icon": "osem-brightness",
+      "_id": "5fc8c893fab469001ce0b3bc"
+    },
+    {
+      "title": "PM10",
+      "unit": "µg/m³",
+      "sensorType": "SDS 011",
+      "icon": "osem-cloud",
+      "_id": "5fc8c893fab469001ce0b3bb"
+    },
+    {
+      "title": "PM2.5",
+      "unit": "µg/m³",
+      "sensorType": "SDS 011",
+      "icon": "osem-cloud",
+      "_id": "5fc8c893fab469001ce0b3ba"
+    },
+    {
+      "title": "Luftfeuchte",
+      "unit": "%",
+      "sensorType": "BME680",
+      "icon": "osem-humidity",
+      "_id": "5fc8c893fab469001ce0b3b9"
+    },
+    {
+      "title": "Lufttemperatur",
+      "unit": "°C",
+      "sensorType": "BME680",
+      "icon": "osem-thermometer",
+      "_id": "5fc8c893fab469001ce0b3b8"
+    },
+    {
+      "title": "atm. Luftdruck",
+      "unit": "hPa",
+      "sensorType": "BME680",
+      "icon": "osem-barometer",
+      "_id": "5fc8c893fab469001ce0b3b7"
+    },
+    {
+      "title": "VOC",
+      "unit": "kOhm",
+      "sensorType": "BME680",
+      "icon": "osem-thermometer",
+      "_id": "5fc8c893fab469001ce0b3b6"
+    },
+    {
+      "title": "Bodenfeuchte",
+      "unit": "%",
+      "sensorType": "SMT50",
+      "icon": "osem-thermometer",
+      "_id": "5fc8c893fab469001ce0b3b5"
+    },
+    {
+      "title": "Bodentemperatur",
+      "unit": "°C",
+      "sensorType": "SMT50",
+      "icon": "osem-thermometer",
+      "_id": "5fc8c893fab469001ce0b3b4"
+    },
+    {
+      "title": "Lautstärke",
+      "unit": "dB (A)",
+      "sensorType": "SOUNDLEVELMETER",
+      "icon": "osem-thermometer",
+      "_id": "5fc8c893fab469001ce0b3b3"
+    },
+    {
+      "title": "Windgeschwindigkeit",
+      "unit": "m/s",
+      "sensorType": "WINDSPEED",
+      "icon": "osem-particulate-matter",
+      "_id": "5fc8c893fab469001ce0b3b2"
+    },
+    {
+      "title": "CO₂",
+      "unit": "ppm",
+      "sensorType": "SCD30",
+      "icon": "osem-co2",
+      "_id": "5fc8c893fab469001ce0b3b1"
+    }
+  ],
+  "model": "homeV2WifiFeinstaub",
+  "loc": [
+    {
+      "geometry": {
+        "timestamp": "2020-12-03T11:14:27.532Z",
+        "coordinates": [7.607942, 51.976097],
+        "type": "Point"
+      },
+      "type": "Feature"
+    }
+  ]
+}

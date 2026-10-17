@@ -1,41 +1,59 @@
 // -----------------------------------------------------------------------------
-// Scene actions (SDK v0.14+, Gladys 5.1+).
+// Scene action "Get the measurements of a box" (Gladys 5.1+).
 //
-// A scene action is an OPERATION a scene author places in a scene, with
-// parameters and a result: "identify this device", "take a snapshot", "clean
-// these rooms". Each one is declared in the manifest `scene_actions` field
-// (key, label, `fields` in the config_schema grammar, scalar `outputs`) and
-// handled here, keyed by that same `key`; index.js registers every entry with
-// `gladys.onSceneAction(key, ...)`.
+// Gives a scene the last measurements of a box as outputs a notification can
+// quote: "{{...summary}}" reads "Saint-Simon Station: Temperature 17.8 °C ·
+// Humidity 99.9 % · 3 min ago". The devices already give each value to the
+// scene conditions; what this action adds is a ready-made sentence in the
+// configured language, and the age of the measurement.
 //
-// Scene TRIGGERS are the other direction ("this happened"): they are fired by
-// the device that observes the event, see src/devices/motionSensor.js.
-//
-// The rules that matter:
-//   - `fields` arrive RESOLVED: scene variables substituted, defaults applied,
-//     validated by the core; a `"source": "devices"` field is the chosen
-//     device external_id;
-//   - resolve an object of the declared `outputs` (scalars only), readable by
-//     the following actions of the scene, or `undefined` for none. Keys not
-//     declared in the manifest are dropped by the core;
-//   - throwing fails THIS action only: the scene logs it and continues. A
-//     scene action is never a condition: return an output and let the scene
-//     author gate on it;
-//   - never fire a scene event as a consequence of a received action: a scene
-//     bound to that event would loop through the integration.
+// The triggers "Box offline" and "Box back online" are fired by the hub
+// (src/hub.js).
 // -----------------------------------------------------------------------------
 
-import { createLogger } from '@gladysassistant/integration-sdk';
-import { signalDevice } from './devices/index.js';
+import { MESSAGES, TEXT } from './i18n.js';
+import { featureOf, sortedFeatures } from './devices.js';
 
-const logger = createLogger({ name: 'scenes' });
+export const GET_MEASUREMENTS = 'get_measurements';
 
-export const SCENE_ACTIONS = {
-  // The ack is awaited under the action's `timeout_seconds` (15 s in the
-  // manifest), counted from the moment the scene reaches the action.
-  async identify_device(gladys, { fields, config }) {
-    logger.info(`Scene action identify_device <- ${fields.device}`);
-    const signalled = await signalDevice(gladys, fields.device, config);
-    return { signalled };
-  },
-};
+/** The measures given as outputs of their own. */
+const OUTPUTS = ['temperature', 'humidity', 'pressure', 'pm25', 'pm10'];
+
+/**
+ * @param {import('./hub.js').Hub} hub
+ * @param {{ box?: string }} fields
+ * @param {string} language
+ */
+export function getMeasurements(hub, fields, language) {
+  const record = fields.box ? hub.recordByDevice(fields.box) : undefined;
+  if (!record) {
+    throw new Error(MESSAGES.thrown(TEXT.unknownBoxAction));
+  }
+  const minutes = hub.ageMinutes(record);
+  if (minutes === null) {
+    throw new Error(MESSAGES.thrown(TEXT.noReading));
+  }
+  const offline = hub.isOffline(record);
+  // The first sensor of each measure, fresh values only.
+  const seen = new Set();
+  const values = [];
+  for (const feature of sortedFeatures(record)) {
+    const value = hub.freshValue(record, feature.key);
+    if (value !== undefined && !seen.has(feature.measure)) {
+      seen.add(feature.measure);
+      values.push({ measure: feature.measure, value });
+    }
+  }
+  const outputs = {
+    summary: MESSAGES.summary({ name: hub.nameOf(record), values, minutes, offline })[language],
+    age_minutes: minutes,
+  };
+  for (const measure of OUTPUTS) {
+    const feature = featureOf(record, measure);
+    const value = feature && hub.freshValue(record, feature.key);
+    if (value !== undefined) {
+      outputs[measure] = value;
+    }
+  }
+  return outputs;
+}

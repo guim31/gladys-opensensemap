@@ -1,61 +1,154 @@
-# Demo Devices Template
+# openSenseMap
 
-This is the user documentation of the integration. Gladys re-hosts this file
-and shows a permanent **Documentation** link to it in the Configuration screen
-(in the user's language, with English as the fallback) — it is when
-configuring that the user needs it most. Keep the short onboarding hints in
-the `section` blocks of the manifest `config_schema`; put the long
-step-by-step (screenshots, troubleshooting…) here.
+The measurements of the citizen sensor boxes of
+[openSenseMap](https://opensensemap.org) (senseBox, airRohr and custom boxes):
+your own box, or the public boxes around your home.
 
-## What you get
+This integration is not affiliated with openSenseMap, openSenseLab or senseBox.
 
-Six demo devices show up after installation: a weather station (real data
-from Open-Meteo), a switch, a dimmable light, a smart plug with power
-metering, a motion sensor and a camera.
+## What it does
+
+- Reads **public openSenseMap boxes** by their id, with no account and no key.
+- Creates **one device per box**, with one feature per sensor it knows:
+  temperature, humidity, pressure, PM2.5, PM10, PM1, CO2, VOC, noise,
+  illuminance, UV index, wind speed, rain rate, soil moisture and soil
+  temperature.
+- Tells how old the last measurement of each box is: a silent box is flagged,
+  its old values are not sent again.
+- Adds a **Box measurements** dashboard widget, two scene triggers **Box
+  offline** and **Box back online**, and a scene action **Get the measurements
+  of a box**.
+
+Read only: the integration never changes anything on a box.
+
+## Requirements
+
+- Gladys Assistant **5.2.0** or later.
+- Internet access (the public openSenseMap API).
+- For the nearby search: the location of your house, set in **Settings →
+  Houses**. The integration asks for access to the house coordinates on the
+  install screen; it only uses them for this search.
 
 ## Configuration
 
-1. Open the **Configuration** tab of the integration.
-2. Set the **latitude** and **longitude** the demo weather station should
-   observe (they default to Paris), and pick your temperature unit.
-   The **refresh interval** sets how often the weather station and the
-   plug's power are read: every 5 minutes by default, every minute at most.
-3. Save: the devices appear in the **Discovery** tab, ready to be added.
+### Choose the boxes
 
-The **Prefer the local connection** toggle drives the demo plug: it reports
-the channel it actually uses as a badge (local or cloud), with an orange dot
-when it runs degraded (local refused, cloud fallback).
+Each box has an id of 24 characters, shown in its address on the map:
+`https://opensensemap.org/explore/5cd81adfff898b001ae7c4c6`. Two ways to find
+it:
 
-## Actions
+1. Click **Find boxes near a house**, pick the house and a radius: the result
+   lists the boxes that measured in the last 24 hours, nearest first, with
+   their distance and measures. Copy the ids you want.
+2. Or open the [map](https://opensensemap.org), click a box and copy the end of
+   the address (the whole link is accepted too).
 
-- **Test the weather provider** — performs a live request to Open-Meteo and
-  shows the current temperature and humidity under the button.
-- **Identify a device** — pick one of your devices in the list and it will
-  signal itself (the demo light "blinks" in the logs).
+Paste the ids in **Box ids**, separated by commas (20 boxes at most), and save.
+The boxes then appear in the **Discovery** tab of the integration: add those
+you want to Gladys.
+
+### Other settings
+
+- **Refresh**: every 5 minutes by default (10, 15 or 30 minutes on request).
+  openSenseMap is a free service run by a non-profit: 5 minutes is the fastest.
+- **Language**: the language of the feature names (set when a device is added)
+  and of the scene texts. French by default.
+
+**Check the boxes** reads every box now and reports, for each one, how old its
+last measurement is, which measures the integration publishes and which
+sensors it leaves out.
+
+## Devices
+
+One device per box, named after the box (`Saint-Simon Station (openSenseMap)`).
+Its features are the sensors of the box the integration knows:
+
+| Measure          | Unit in Gladys | Notes                                     |
+| ---------------- | -------------- | ----------------------------------------- |
+| Temperature      | °C             |                                           |
+| Humidity         | %              |                                           |
+| Pressure         | hPa            | converted from Pa when needed             |
+| PM2.5, PM10, PM1 | µg/m³          | PM1 is a PM2.5-type feature named "PM1"   |
+| CO2              | ppm            |                                           |
+| VOC              | ppb            | only when the box sends ppb               |
+| Noise            | dB             |                                           |
+| Illuminance      | lx             |                                           |
+| UV index         | UV index       | only a real UV index, not µW/cm²          |
+| Wind speed       | km/h           | converted from m/s when needed; gusts too |
+| Rain rate        | mm/h           |                                           |
+| Soil moisture    | %              |                                           |
+| Soil temperature | °C             |                                           |
+| Measurement age  | minutes        | since the last measurement of the box     |
+
+The owners name their sensors freely ("Temperatur", "Temp ~ Air", "CO₂"…): the
+integration recognizes a measure by its unit and its title. When a box
+measures the same thing twice, the second feature carries the owner's title,
+e.g. "Temperature (Lufttemperatur)".
+
+A value is published while it is less than **one hour** old. Past that, the
+box is shown offline and only the **Measurement age** keeps moving.
+
+## Widget
+
+**Box measurements**: with a box chosen in its settings, up to six live tiles
+(one per measure) and the time of the last measurement, red when the box is
+offline. Without a box: one row per box, with how long ago it measured.
 
 ## Scenes
 
-The integration adds its own cards to the scene editor (Gladys 5.1 or
-later), under the **Integrations** category:
+### Trigger: Box offline
 
-- **Motion detected** (trigger) — starts the scene when a demo motion sensor
-  sees something move. Optionally pick the sensor and what moved (person,
-  animal); left empty, any detection matches. The following actions can
-  read what moved with `{{triggerEvent.data.target}}`.
-- **Identify a device** (action) — makes the chosen device signal itself.
-  It returns whether the device could signal itself, so the following
-  actions can depend on it.
+Fires once when a box has sent nothing for the chosen time: 1, 3, 6, 12, 24 or
+48 hours. Leave **Box** empty to watch every box. Variables: the box name, the
+minutes without measurement, the time of the last measurement (UTC).
 
-## Dashboard
+The integration only says a box is offline after a successful answer of
+openSenseMap: an outage of the service is not a box going offline. A box
+already silent when you add it fires nothing.
 
-Add the **Demo status** widget to a dashboard: it shows the live
-temperature of the weather station and the power of the office plug, the
-connection the plug currently uses (orange when degraded) and the observed
-location. Its **Identify the light** button makes the demo light signal
-itself.
+### Trigger: Box back online
+
+Fires when a box reported offline measures again. Variables: the box name and
+how many minutes it was silent.
+
+### Action: Get the measurements of a box
+
+Gives the last values of a box to the following actions: a ready-made
+**summary** ("Saint-Simon Station (openSenseMap): Temperature 17.8 °C ·
+Humidity 99.9 % · 3 min ago"), the **age** of the measurement in minutes, and
+the temperature, humidity, pressure, PM2.5 and PM10 when the box measures them
+and they are fresh.
+
+## Scene examples
+
+- **Warn me when my box stops**: trigger **Box offline**, box "My senseBox",
+  6 hours → send a message "My senseBox has sent nothing for 6 hours: check
+  its power and its Wi-Fi."
+- **Morning report**: every day at 7:00 → **Get the measurements of a box** →
+  send the message `{{summary}}`.
+- **Air the room**: when the **CO2** feature of an indoor box is above 1,200
+  ppm → send a notification "Air the classroom".
 
 ## Troubleshooting
 
-The integration logs everything it does: check the integration logs from the
-Gladys UI (or `docker logs` on the host) with `LOG_LEVEL=debug` for the full
-detail.
+- **No device in the Discovery tab**: check the ids with **Check the boxes**.
+  "No such box on openSenseMap" means a wrong id.
+- **A box shows no value**: it has not measured for more than an hour (see
+  **Measurement age**), or its sensors are of a kind the integration leaves out
+  (listed by **Check the boxes**).
+- **"The openSenseMap API does not answer"**: the service is down or
+  unreachable from Gladys; the readings resume on their own.
+- **A feature name is in the wrong language**: names are set when the device
+  is added. Change **Language**, delete the device and add it again from the
+  Discovery tab (its history is lost).
+
+## Limits
+
+- Citizen sensors, not reference stations: low-cost dust sensors over-read in
+  humid air, a sensor in the sun reads too warm. The values are indications.
+- Left out: UV in µW/cm² (no Gladys unit, no reliable conversion), PM4, VOC in
+  kOhm, wind direction and rain amounts. **Check the boxes** lists them for
+  each box. The nearby search leaves out mobile boxes (bikes).
+- A feature is never removed: a sensor taken off a box keeps its feature,
+  without new values.
+- 20 boxes at most, each read every 5 minutes at most.

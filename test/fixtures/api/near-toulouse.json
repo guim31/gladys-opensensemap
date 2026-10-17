@@ -1,0 +1,237 @@
+[
+  {
+    "_id": "64f2059a2674260007eebcb3",
+    "createdAt": "2023-09-01T15:39:06.608Z",
+    "updatedAt": "2026-10-17T14:50:42.108Z",
+    "name": "Arcachon",
+    "currentLocation": {
+      "timestamp": "2023-09-01T15:39:06.595Z",
+      "coordinates": [1.439131, 43.623371, 621],
+      "type": "Point"
+    },
+    "exposure": "outdoor",
+    "sensors": [
+      {
+        "title": "PM10",
+        "unit": "µg/m³",
+        "sensorType": "SDS 011",
+        "icon": "osem-cloud",
+        "_id": "64f2059a2674260007eebcb8",
+        "lastMeasurement": {
+          "createdAt": "2026-10-17T14:50:41.587Z",
+          "value": "2.30"
+        }
+      },
+      {
+        "title": "PM2.5",
+        "unit": "µg/m³",
+        "sensorType": "SDS 011",
+        "icon": "osem-cloud",
+        "_id": "64f2059a2674260007eebcb7",
+        "lastMeasurement": {
+          "createdAt": "2026-10-17T14:50:41.587Z",
+          "value": "1.00"
+        }
+      },
+      {
+        "title": "Temperatur",
+        "unit": "°C",
+        "sensorType": "BME280",
+        "icon": "osem-thermometer",
+        "_id": "64f2059a2674260007eebcb6",
+        "lastMeasurement": {
+          "createdAt": "2026-10-17T14:50:41.587Z",
+          "value": "20.12"
+        }
+      },
+      {
+        "title": "rel. Luftfeuchte",
+        "unit": "%",
+        "sensorType": "BME280",
+        "icon": "osem-humidity",
+        "_id": "64f2059a2674260007eebcb5",
+        "lastMeasurement": {
+          "value": "78.07",
+          "createdAt": "2026-10-17T14:48:12.198Z"
+        }
+      },
+      {
+        "title": "Luftdruck",
+        "unit": "Pa",
+        "sensorType": "BME280",
+        "icon": "osem-barometer",
+        "_id": "64f2059a2674260007eebcb4",
+        "lastMeasurement": {
+          "createdAt": "2026-10-17T14:50:41.587Z",
+          "value": "99817.25"
+        }
+      }
+    ],
+    "model": "luftdaten_sds011_bme280",
+    "grouptag": [],
+    "lastMeasurementAt": "2026-10-17T14:50:41.587Z",
+    "loc": [
+      {
+        "geometry": {
+          "timestamp": "2023-09-01T15:39:06.595Z",
+          "coordinates": [1.439131, 43.623371, 621],
+          "type": "Point"
+        },
+        "type": "Feature"
+      }
+    ]
+  },
+  {
+    "_id": "6a8e86b0852a4900073a16b2",
+    "grouptag": ["CPIE"],
+    "model": "luftdaten_sds011_bme280",
+    "name": "CPIE5098427",
+    "currentLocation": {
+      "type": "Point",
+      "coordinates": [1.438617, 43.623532, 144],
+      "timestamp": "2026-08-26T06:24:48.585Z"
+    },
+    "exposure": "indoor",
+    "sensors": [
+      {
+        "_id": "6a8e86b0852a4900073a16b3",
+        "title": "PM10",
+        "unit": "µg/m³",
+        "sensorType": "SDS 011",
+        "icon": "osem-cloud",
+        "lastMeasurement": {
+          "createdAt": "2026-10-17T14:50:26.687Z",
+          "value": "2.75"
+        }
+      },
+      {
+        "_id": "6a8e86b0852a4900073a16b4",
+        "title": "PM2.5",
+        "unit": "µg/m³",
+        "sensorType": "SDS 011",
+        "icon": "osem-cloud",
+        "lastMeasurement": {
+          "createdAt": "2026-10-17T14:50:26.687Z",
+          "value": "1.50"
+        }
+      },
+      {
+        "_id": "6a8e86b0852a4900073a16b5",
+        "title": "Temperatur",
+        "unit": "°C",
+        "sensorType": "BME280",
+        "icon": "osem-thermometer",
+        "lastMeasurement": {
+          "createdAt": "2026-10-17T14:50:26.687Z",
+          "value": "20.45"
+        }
+      },
+      {
+        "_id": "6a8e86b0852a4900073a16b6",
+        "title": "rel. Luftfeuchte",
+        "unit": "%",
+        "sensorType": "BME280",
+        "icon": "osem-humidity",
+        "lastMeasurement": {
+          "createdAt": "2026-10-17T14:50:26.687Z",
+          "value": "59.41"
+        }
+      },
+      {
+        "_id": "6a8e86b0852a4900073a16b7",
+        "title": "Luftdruck",
+        "unit": "Pa",
+        "sensorType": "BME280",
+        "icon": "osem-barometer",
+        "lastMeasurement": {
+          "value": "100173.22",
+          "createdAt": "2026-10-17T14:47:59.461Z"
+        }
+      }
+    ],
+    "updatedAt": "2026-10-17T14:50:26.692Z",
+    "createdAt": "2026-08-26T06:24:48.591Z",
+    "lastMeasurementAt": "2026-10-17T14:50:26.687Z",
+    "loc": [
+      {
+        "geometry": {
+          "type": "Point",
+          "coordinates": [1.438617, 43.623532, 144],
+          "timestamp": "2026-08-26T06:24:48.585Z"
+        },
+        "type": "Feature"
+      }
+    ]
+  },
+  {
+    "_id": "5cd81adfff898b001ae7c4c6",
+    "createdAt": "2022-03-30T11:25:43.719Z",
+    "updatedAt": "2026-10-17T14:49:30.523Z",
+    "name": "Saint-Simon Station",
+    "currentLocation": {
+      "timestamp": "2019-05-12T13:08:47.468Z",
+      "coordinates": [1.37326, 43.564933],
+      "type": "Point"
+    },
+    "exposure": "outdoor",
+    "sensors": [
+      {
+        "title": "PM10",
+        "unit": "µg/m³",
+        "sensorType": "SDS 011",
+        "icon": "osem-cloud",
+        "_id": "5cd81adfff898b001ae7c4ca",
+        "lastMeasurement": {
+          "createdAt": "2026-10-17T14:49:30.516Z",
+          "value": "3.30"
+        }
+      },
+      {
+        "title": "PM2.5",
+        "unit": "µg/m³",
+        "sensorType": "SDS 011",
+        "icon": "osem-cloud",
+        "_id": "5cd81adfff898b001ae7c4c9",
+        "lastMeasurement": {
+          "createdAt": "2026-10-17T14:49:30.516Z",
+          "value": "2.00"
+        }
+      },
+      {
+        "title": "Temperatur",
+        "unit": "°C",
+        "sensorType": "DHT22",
+        "icon": "osem-thermometer",
+        "_id": "5cd81adfff898b001ae7c4c8",
+        "lastMeasurement": {
+          "createdAt": "2026-10-17T14:49:30.516Z",
+          "value": "17.80"
+        }
+      },
+      {
+        "title": "rel. Luftfeuchte",
+        "unit": "%",
+        "sensorType": "DHT22",
+        "icon": "osem-humidity",
+        "_id": "5cd81adfff898b001ae7c4c7",
+        "lastMeasurement": {
+          "value": "99.90",
+          "createdAt": "2026-10-17T14:49:30.516Z"
+        }
+      }
+    ],
+    "model": "luftdaten_sds011_dht22",
+    "lastMeasurementAt": "2026-10-17T14:49:30.516Z",
+    "grouptag": [""],
+    "loc": [
+      {
+        "geometry": {
+          "timestamp": "2019-05-12T13:08:47.468Z",
+          "coordinates": [1.37326, 43.564933],
+          "type": "Point"
+        },
+        "type": "Feature"
+      }
+    ]
+  }
+]

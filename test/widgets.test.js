@@ -1,77 +1,81 @@
+// -----------------------------------------------------------------------------
+// The "Box measurements" widget: valid for the core (validateWidgetContent),
+// within its budget, bound to features that exist.
+// -----------------------------------------------------------------------------
+
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { validateWidgetContent } from '@gladysassistant/integration-sdk';
-import { createFakeGladys } from '@gladysassistant/integration-sdk/testing';
-import { buildDiscoveredDevices } from '../src/devices/index.js';
-import { simulateLanSession } from '../src/devices/plug.js';
-import { DEMO_STATUS_WIDGET, WIDGETS, refreshWidgets } from '../src/widgets.js';
-import { normalizeConfig } from '../src/config.js';
+import { createAll, createWorld, discovered } from './helpers/world.js';
+import { apiFixture, boxIdOf, fresh } from './helpers/network.js';
 
-const gladys = createFakeGladys();
-const config = normalizeConfig();
-const demoStatus = WIDGETS[DEMO_STATUS_WIDGET];
+const SIMON = boxIdOf('box-toulouse-saint-simon');
+const FULL = boxIdOf('box-muenster-full');
 
-// What the SDK passes to onWidgetGet, plus the config index.js adds.
-const getContent = (cfg = config) =>
-  demoStatus.get(gladys, { settings: {}, language: 'en', units: 'metric', config: cfg });
+async function content(world, settings, language = 'fr') {
+  const ack = await world.gladys.fake.widgetGet('box_measurements', { settings, language });
+  assert.equal(ack.success, true, JSON.stringify(ack));
+  const { content } = ack.data;
+  validateWidgetContent(content);
+  assert.ok(content.components.length <= 8, 'budget of the core: 8 components');
+  assert.ok(content.components.filter((c) => c.type === 'text').length <= 2);
+  return content;
+}
 
-test('the demo_status content is rendered exactly as sent', async () => {
-  // [] = nothing the core would drop, truncate or trim to the content budget.
-  assert.deepEqual(validateWidgetContent(await getContent()), []);
+test('no box added yet: a sentence says where to add one', async () => {
+  const world = await createWorld({ fixtures: ['box-toulouse-saint-simon'] });
+  const data = await content(world, {});
+  assert.equal(data.components[0].type, 'text');
+  assert.match(data.components[0].text, /Découverte/);
 });
 
-test('the degraded plug connection content is valid too', async () => {
-  simulateLanSession(false);
-  try {
-    const content = await getContent();
-    assert.deepEqual(validateWidgetContent(content), []);
-    const status = content.components.find((component) => component.type === 'status');
-    assert.ok(
-      status.items.some((item) => item.color === 'warning'),
-      'degraded shows a warning',
-    );
-  } finally {
-    simulateLanSession(true);
-  }
-});
-
-test('the live tiles reference features the integration publishes', async () => {
-  const featureIds = new Set(
-    buildDiscoveredDevices(gladys, config).flatMap((device) =>
-      device.features.map((feature) => feature.external_id),
-    ),
+test('one box: live tiles bound to its features, and its last measurement', async () => {
+  const world = await createWorld({ fixtures: ['box-toulouse-saint-simon', 'box-muenster-full'] });
+  await createAll(world);
+  const device = discovered(world, SIMON);
+  const data = await content(world, { box: device.external_id });
+  const tiles = data.components.filter((c) => c.type === 'value');
+  assert.deepEqual(
+    tiles.map((tile) => tile.label),
+    ['Température', 'Humidité', 'PM2.5', 'PM10'],
   );
-  const liveTiles = (await getContent()).components.filter((c) => c.device_feature);
-  assert.ok(liveTiles.length > 0, 'the template demonstrates a device-bound tile');
-  for (const tile of liveTiles) {
-    assert.ok(featureIds.has(tile.device_feature), `unknown feature ${tile.device_feature}`);
+  const features = new Set(device.features.map((f) => f.external_id));
+  for (const tile of tiles) {
+    assert.ok(features.has(tile.device_feature), tile.device_feature);
   }
+  const status = data.components.at(-1);
+  assert.equal(status.items[0].value, 'il y a 1 min');
+  assert.equal(status.items[0].color, 'success');
+
+  // A big box: six tiles at most, one per measure.
+  const big = await content(world, { box: discovered(world, FULL).external_id }, 'de');
+  assert.equal(big.components.filter((c) => c.type === 'value').length, 6);
 });
 
-test('every button action of the content is handled and answers a short toast', async () => {
-  const buttons = (await getContent()).components.filter((c) => c.type === 'button' && c.action);
-  assert.ok(buttons.length > 0, 'the template demonstrates a widget action');
-  for (const { action } of buttons) {
-    const message = await demoStatus.action(gladys, {
-      actionKey: action.key,
-      params: action.params ?? {},
-      settings: {},
-      config,
-    });
-    assert.ok(message.en, 'the toast carries at least the mandatory `en` text');
-    assert.ok(message.en.length <= 200, 'toasts are capped at 200 characters');
+test('every box: one row each, red when offline', async () => {
+  const world = await createWorld({
+    fixtures: ['box-toulouse-saint-simon', 'box-muenster-library'],
+  });
+  await createAll(world);
+  world.network.boxes[SIMON] = fresh(apiFixture('box-toulouse-saint-simon'), world.clock.now);
+  for (let i = 0; i < 14; i += 1) {
+    world.advance(5 * 60_000);
+    await world.app.poller.cycle();
   }
+  const data = await content(world, {}, 'en');
+  const [simon, library] = data.components[0].items;
+  assert.equal(simon.label, 'Saint-Simon Station (openSenseMap)');
+  assert.equal(simon.value, 'Offline for 71 min');
+  assert.equal(simon.color, 'danger');
+  assert.equal(library.color, 'success');
+  assert.ok(world.gladys.fake.widgetRefreshes.length > 1, 'refreshed when the box went offline');
 });
 
-test('an unknown widget action fails, so the user sees the error', async () => {
-  await assert.rejects(
-    demoStatus.action(gladys, { actionKey: 'unknown', params: {}, settings: {}, config }),
-    /Unknown widget action/,
-  );
-});
-
-test('refreshWidgets nudges every widget', () => {
-  const fresh = createFakeGladys();
-  refreshWidgets(fresh);
-  assert.deepEqual(fresh.fake.widgetRefreshes, Object.keys(WIDGETS));
+test('a box no longer configured: the widget says so', async () => {
+  const world = await createWorld({ fixtures: ['box-toulouse-saint-simon'] });
+  await createAll(world);
+  const device = discovered(world, SIMON);
+  await world.gladys.fake.configUpdated({ box_ids: '' });
+  const data = await content(world, { box: device.external_id }, 'es');
+  assert.match(data.components[0].text, /ya no se lee/);
 });

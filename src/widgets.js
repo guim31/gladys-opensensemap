@@ -1,169 +1,104 @@
 // -----------------------------------------------------------------------------
-// Dashboard widgets (SDK v0.14+, Gladys 5.1+).
+// The "Box measurements" dashboard widget (Gladys 5.1+).
 //
-// A widget puts the integration's own data on the Gladys dashboard without a
-// dedicated core widget. The manifest `widgets` field declares its identity
-// (key, label, icon, optional per-instance `settings`); at runtime the
-// integration returns a DECLARATIVE content — `text`, `value`, `gauge`,
-// `status`, `chart`, `card-list`, `image`, `button` — that the core renders
-// with its own theme, dark mode and translations. No HTML, no CSS.
+// With a box chosen in its settings: up to six live tiles (bound to the device
+// features, so they follow every state) and the time of the last measurement,
+// red when the box is offline. Without one: one row per added box, with how
+// long ago it measured.
 //
-// Each entry of WIDGETS is keyed by the widget `key` and exposes:
-//   - get(gladys, { settings, language, units, config }): the content,
-//     registered by index.js with `gladys.onWidgetGet(key, ...)`;
-//   - action(gladys, { actionKey, params, settings, config }) (optional): a
-//     tapped `button` carrying an `action`, registered with
-//     `gladys.onWidgetAction`.
-//
-// Check your contents in the tests with `validateWidgetContent` (exported by
-// the SDK, see test/widgets.test.js), or run with DEBUG=gladys-integration-sdk
-// to have the SDK log every violation of the vocabulary and the budget.
+// The content is built from what the integration already read: showing the
+// widget never calls the API. The core caches it per (settings, language,
+// units), so the texts are localized in the language it asks for.
 // -----------------------------------------------------------------------------
 
-import {
-  createLogger,
-  DEVICE_FEATURE_CATEGORIES,
-  DEVICE_TRANSPORTS,
-  WIDGET_COLORS,
-} from '@gladysassistant/integration-sdk';
-import { identifyDevice } from './devices/index.js';
-import { weatherStation } from './devices/weatherStation.js';
-import { plug } from './devices/plug.js';
-import { light } from './devices/light.js';
+import { WIDGET_COLORS } from '@gladysassistant/integration-sdk';
+import { MESSAGES, NAMES, TEXT } from './i18n.js';
+import { idsOf, sortedFeatures } from './devices.js';
+import { LANGUAGES } from './config.js';
 
-const logger = createLogger({ name: 'widgets' });
+export const WIDGET_KEY = 'box_measurements';
 
-// Widget key, as declared in the manifest `widgets` field.
-export const DEMO_STATUS_WIDGET = 'demo_status';
+/** Seconds the core keeps a content: the age row moves by the minute. */
+const TTL_SECONDS = 120;
 
-// Keys of the `button` actions the demo_status content declares.
-const DEMO_STATUS_ACTIONS = { IDENTIFY_LIGHT: 'identify_light' };
+/** Tiles of the single-box view (budget of the core: 8 components). */
+const MAX_TILES = 6;
 
-// How the plug transport reads in the status list.
-const TRANSPORT_STATUS = {
-  [DEVICE_TRANSPORTS.LOCAL]: { value: { en: 'Local', fr: 'Locale' }, color: WIDGET_COLORS.SUCCESS },
-  [DEVICE_TRANSPORTS.CLOUD]: { value: { en: 'Cloud', fr: 'Cloud' }, color: WIDGET_COLORS.INFO },
-  [DEVICE_TRANSPORTS.UNREACHABLE]: {
-    value: { en: 'Unreachable', fr: 'Injoignable' },
-    color: WIDGET_COLORS.DANGER,
-  },
-};
+/** Rows of the overview. */
+const MAX_ROWS = 10;
 
-// A live tile references a feature by its external_id: read it from the
-// discovery payload itself, so the widget and the device never disagree.
-function featureExternalId(gladys, config, blueprint, category) {
-  const device = blueprint.buildDevice(gladys, config);
-  return device.features.find((feature) => feature.category === category).external_id;
-}
+const clip = (text, max) => (text.length > max ? `${text.slice(0, max - 1)}…` : text);
 
-function plugConnectionStatus(gladys, config) {
-  const { transport, degraded } = plug.transport(gladys, config);
-  const { value, color } = TRANSPORT_STATUS[transport];
-  if (degraded) {
-    return {
-      value: { en: `${value.en} (degraded mode)`, fr: `${value.fr} (mode dégradé)` },
-      color: WIDGET_COLORS.WARNING,
-    };
+/** The freshness row of a box: green when it measured recently, red when offline. */
+function ageItem(hub, record, label, language) {
+  const minutes = hub.ageMinutes(record);
+  if (minutes === null) {
+    return { label, value: TEXT.noData[language], color: WIDGET_COLORS.NEUTRAL };
   }
-  return { value, color };
+  const offline = hub.isOffline(record);
+  return {
+    label,
+    value: clip(MESSAGES.measuredAgo(minutes, offline)[language], 40),
+    color: offline ? WIDGET_COLORS.DANGER : WIDGET_COLORS.SUCCESS,
+    icon: offline ? 'wifi-off' : 'clock',
+  };
 }
-
-export const WIDGETS = {
-  [DEMO_STATUS_WIDGET]: {
-    // `settings` holds the per-instance values of the declared `settings`
-    // (none here); `language` and `units` are those of the user viewing the
-    // dashboard, for the values you format yourself. Multi-language objects
-    // (`{ en, fr }`) are picked by the core, like everywhere else.
-    async get(gladys, { config }) {
-      logger.debug(`onWidgetGet <- ${DEMO_STATUS_WIDGET}`);
-      return {
-        // Reload policy: the computed parts below only change with the
-        // config, and index.js nudges the widget on every (re)connection and
-        // config update (see refreshWidgets) — the TTL is just a safety net.
-        ttl_seconds: 300,
-        components: [
-          // Device-bound tiles: LIVE, they follow the published states over
-          // the core's real-time path. No TTL, no nudge involved.
-          {
-            type: 'value',
-            label: { en: 'Temperature', fr: 'Température' },
-            icon: 'thermometer',
-            device_feature: featureExternalId(
-              gladys,
-              config,
-              weatherStation,
-              DEVICE_FEATURE_CATEGORIES.TEMPERATURE_SENSOR,
-            ),
-          },
-          {
-            type: 'value',
-            label: { en: 'Office plug', fr: 'Prise du bureau' },
-            icon: 'zap',
-            device_feature: featureExternalId(
-              gladys,
-              config,
-              plug,
-              DEVICE_FEATURE_CATEGORIES.ENERGY_SENSOR,
-            ),
-          },
-          // Computed rows: what the integration knows that no device feature
-          // carries. Served from the core cache until the TTL or a nudge.
-          {
-            type: 'status',
-            items: [
-              {
-                label: { en: 'Plug connection', fr: 'Connexion de la prise' },
-                icon: 'wifi',
-                ...plugConnectionStatus(gladys, config),
-              },
-              {
-                label: { en: 'Observed location', fr: 'Position observée' },
-                icon: 'map-pin',
-                value: `${config.latitude.toFixed(2)}, ${config.longitude.toFixed(2)}`,
-                color: WIDGET_COLORS.NEUTRAL,
-              },
-            ],
-          },
-          // `params` are declared HERE and sent back as-is: the handler never
-          // receives user input (a dashboard can hang on a public wall).
-          {
-            type: 'button',
-            label: { en: 'Identify the light', fr: 'Identifier la lampe' },
-            icon: 'eye',
-            style: 'secondary',
-            action: {
-              key: DEMO_STATUS_ACTIONS.IDENTIFY_LIGHT,
-              params: { device: light.deviceExternalId(gladys) },
-            },
-          },
-        ],
-      };
-    },
-
-    // Resolve an optional toast (string or multi-language object, ≤ 200
-    // characters). After a successful action the core drops the cached
-    // content and every open dashboard refetches it: no nudge needed.
-    async action(gladys, { actionKey, params, config }) {
-      logger.info(`onWidgetAction <- ${DEMO_STATUS_WIDGET}.${actionKey}`);
-      if (actionKey === DEMO_STATUS_ACTIONS.IDENTIFY_LIGHT) {
-        return identifyDevice(gladys, params.device, config);
-      }
-      // Throwing acks the action as failed: the message reaches the user.
-      throw new Error(`Unknown widget action: ${actionKey}`);
-    },
-  },
-};
 
 /**
- * Freshness nudge: ask the core to re-pull every widget NOW instead of
- * waiting for the content TTL. Call it when you KNOW a computed content
- * changed (here: the config, which drives the plug transport and the observed
- * location) — and after every (re)connection, since the nudges are
- * fire-and-forget: rate-limited core-side to 1 per 10 s per widget, dropped
- * silently while disconnected.
+ * The widget content.
+ * @param {object} options
+ * @param {import('./hub.js').Hub} options.hub
+ * @param {object} options.gladys
+ * @param {{ box?: string }} [options.settings]
+ * @param {string} [options.language]
  */
-export function refreshWidgets(gladys) {
-  for (const key of Object.keys(WIDGETS)) {
-    gladys.requestWidgetRefresh(key);
+export function buildBoxContent({ hub, gladys, settings = {}, language = 'en' }) {
+  const lang = LANGUAGES.includes(language) ? language : 'en';
+
+  if (settings.box) {
+    const record = hub.recordByDevice(settings.box);
+    if (!record) {
+      return {
+        ttl_seconds: TTL_SECONDS,
+        components: [{ type: 'text', text: TEXT.unknownBox[lang] }],
+      };
+    }
+    const ids = idsOf(gladys, record);
+    // One tile per measure (the first sensor of each), in display order.
+    const seen = new Set();
+    const tiles = [];
+    for (const feature of sortedFeatures(record)) {
+      if (!seen.has(feature.measure) && tiles.length < MAX_TILES) {
+        seen.add(feature.measure);
+        tiles.push({
+          type: 'value',
+          label: NAMES[lang][feature.measure],
+          device_feature: ids.feature(feature.key),
+        });
+      }
+    }
+    return {
+      ttl_seconds: TTL_SECONDS,
+      components: [
+        ...tiles,
+        { type: 'status', items: [ageItem(hub, record, TEXT.lastMeasurement[lang], lang)] },
+      ],
+    };
   }
+
+  const created = hub.configuredRecords().filter((record) => hub.isCreated(record));
+  if (created.length === 0) {
+    return { ttl_seconds: TTL_SECONDS, components: [{ type: 'text', text: TEXT.noBox[lang] }] };
+  }
+  return {
+    ttl_seconds: TTL_SECONDS,
+    components: [
+      {
+        type: 'status',
+        items: created
+          .slice(0, MAX_ROWS)
+          .map((record) => ageItem(hub, record, clip(hub.nameOf(record), 40), lang)),
+      },
+    ],
+  };
 }
