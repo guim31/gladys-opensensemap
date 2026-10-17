@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-17
+
 ### Added
 
 - openSenseMap boxes in Gladys, read from the public API (no account): one
@@ -25,3 +27,6 @@ the notes of the version's GitHub Release.
   notification.
 - Dashboard widget "Box measurements".
 - Texts and documentation in English, French, German and Spanish.
+
+[Unreleased]: https://github.com/guim31/gladys-opensensemap/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/guim31/gladys-opensensemap/releases/tag/v1.0.0
