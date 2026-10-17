@@ -1,0 +1,57 @@
+{
+  "_id": "64a83d3923a97f0007b538d5",
+  "createdAt": "2023-07-07T16:28:41.503Z",
+  "updatedAt": "2024-03-16T09:41:20.378Z",
+  "name": "F&Hdétect1sansP-Toulouse",
+  "currentLocation": {
+    "timestamp": "2023-07-07T16:28:41.495Z",
+    "coordinates": [1.457292, 43.592021, 161],
+    "type": "Point"
+  },
+  "exposure": "outdoor",
+  "sensors": [
+    {
+      "title": "PM10",
+      "unit": "µg/m³",
+      "sensorType": "SDS 011",
+      "icon": "osem-cloud",
+      "_id": "64a83d3923a97f0007b538d9",
+      "lastMeasurement": null
+    },
+    {
+      "title": "PM2.5",
+      "unit": "µg/m³",
+      "sensorType": "SDS 011",
+      "icon": "osem-cloud",
+      "_id": "64a83d3923a97f0007b538d8",
+      "lastMeasurement": null
+    },
+    {
+      "title": "Temperatur",
+      "unit": "°C",
+      "sensorType": "BMP180",
+      "icon": "osem-thermometer",
+      "_id": "64a83d3923a97f0007b538d7"
+    },
+    {
+      "title": "Luftdruck",
+      "unit": "Pa",
+      "sensorType": "BMP180",
+      "icon": "osem-humidity",
+      "_id": "64a83d3923a97f0007b538d6"
+    }
+  ],
+  "model": "luftdaten_sds011_bmp180",
+  "grouptag": [],
+  "lastMeasurementAt": "2024-03-16T09:41:20.362Z",
+  "loc": [
+    {
+      "geometry": {
+        "timestamp": "2023-07-07T16:28:41.495Z",
+        "coordinates": [1.457292, 43.592021, 161],
+        "type": "Point"
+      },
+      "type": "Feature"
+    }
+  ]
+}

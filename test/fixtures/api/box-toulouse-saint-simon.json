@@ -1,0 +1,71 @@
+{
+  "_id": "5cd81adfff898b001ae7c4c6",
+  "createdAt": "2022-03-30T11:25:43.719Z",
+  "updatedAt": "2026-10-17T14:49:30.523Z",
+  "name": "Saint-Simon Station",
+  "currentLocation": {
+    "timestamp": "2019-05-12T13:08:47.468Z",
+    "coordinates": [1.37326, 43.564933],
+    "type": "Point"
+  },
+  "exposure": "outdoor",
+  "sensors": [
+    {
+      "title": "PM10",
+      "unit": "µg/m³",
+      "sensorType": "SDS 011",
+      "icon": "osem-cloud",
+      "_id": "5cd81adfff898b001ae7c4ca",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:49:30.516Z",
+        "value": "3.30"
+      }
+    },
+    {
+      "title": "PM2.5",
+      "unit": "µg/m³",
+      "sensorType": "SDS 011",
+      "icon": "osem-cloud",
+      "_id": "5cd81adfff898b001ae7c4c9",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:49:30.516Z",
+        "value": "2.00"
+      }
+    },
+    {
+      "title": "Temperatur",
+      "unit": "°C",
+      "sensorType": "DHT22",
+      "icon": "osem-thermometer",
+      "_id": "5cd81adfff898b001ae7c4c8",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:49:30.516Z",
+        "value": "17.80"
+      }
+    },
+    {
+      "title": "rel. Luftfeuchte",
+      "unit": "%",
+      "sensorType": "DHT22",
+      "icon": "osem-humidity",
+      "_id": "5cd81adfff898b001ae7c4c7",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:49:30.516Z",
+        "value": "99.90"
+      }
+    }
+  ],
+  "model": "luftdaten_sds011_dht22",
+  "lastMeasurementAt": "2026-10-17T14:49:30.516Z",
+  "grouptag": [""],
+  "loc": [
+    {
+      "geometry": {
+        "timestamp": "2019-05-12T13:08:47.468Z",
+        "coordinates": [1.37326, 43.564933],
+        "type": "Point"
+      },
+      "type": "Feature"
+    }
+  ]
+}

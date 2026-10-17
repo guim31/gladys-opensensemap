@@ -1,0 +1,104 @@
+{
+  "_id": "682b3a8f7f7c2000081caa66",
+  "grouptag": [],
+  "model": "homeV2Wifi",
+  "name": "Rudolf Carree",
+  "currentLocation": {
+    "type": "Point",
+    "coordinates": [7.645843, 51.961882],
+    "timestamp": "2025-05-19T14:05:03.969Z"
+  },
+  "exposure": "outdoor",
+  "sensors": [
+    {
+      "_id": "682b3a8f7f7c2000081caa67",
+      "title": "Temperatur",
+      "unit": "°C",
+      "sensorType": "HDC1080",
+      "icon": "osem-thermometer",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:50:49.987Z",
+        "value": "21.55"
+      }
+    },
+    {
+      "_id": "682b3a8f7f7c2000081caa68",
+      "title": "rel. Luftfeuchte",
+      "unit": "%",
+      "sensorType": "HDC1080",
+      "icon": "osem-humidity",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:50:49.987Z",
+        "value": "48.82"
+      }
+    },
+    {
+      "_id": "682b3a8f7f7c2000081caa69",
+      "title": "Lautstärke (LEQ 60s)",
+      "unit": "dB (A)",
+      "sensorType": "SOUNDLEVELMETER",
+      "icon": "osem-thermometer",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:50:49.987Z",
+        "value": "45.23"
+      }
+    },
+    {
+      "_id": "682b3a8f7f7c2000081caa6a",
+      "title": "PM1",
+      "unit": "µg/m³",
+      "sensorType": "SPS30",
+      "icon": "osem-cloud",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:50:49.987Z",
+        "value": "0.00"
+      }
+    },
+    {
+      "_id": "682b3a8f7f7c2000081caa6b",
+      "title": "PM2.5",
+      "unit": "µg/m³",
+      "sensorType": "SPS30",
+      "icon": "osem-cloud",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:50:49.987Z",
+        "value": "0.00"
+      }
+    },
+    {
+      "_id": "682b3a8f7f7c2000081caa6c",
+      "title": "PM4",
+      "unit": "µg/m³",
+      "sensorType": "SPS30",
+      "icon": "osem-cloud",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:50:49.987Z",
+        "value": "0.00"
+      }
+    },
+    {
+      "_id": "682b3a8f7f7c2000081caa6d",
+      "title": "PM10",
+      "unit": "µg/m³",
+      "sensorType": "SPS30",
+      "icon": "osem-cloud",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:50:49.987Z",
+        "value": "0.00"
+      }
+    }
+  ],
+  "updatedAt": "2026-10-17T14:50:49.996Z",
+  "createdAt": "2025-05-19T14:05:03.979Z",
+  "lastMeasurementAt": "2026-10-17T14:50:49.987Z",
+  "loc": [
+    {
+      "geometry": {
+        "type": "Point",
+        "coordinates": [7.645843, 51.961882],
+        "timestamp": "2025-05-19T14:05:03.969Z"
+      },
+      "type": "Feature"
+    }
+  ]
+}

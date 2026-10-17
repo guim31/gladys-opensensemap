@@ -30,6 +30,17 @@ Gladys before reporting a problem.
 
 In scope: the code of this repository and the Docker image it publishes.
 
+What the integration handles:
+
+- **Network**: outgoing HTTPS requests to the public openSenseMap API
+  (`api.opensensemap.org`) only. It opens no port and needs no account, token
+  or key.
+- **`/data`**: `boxes.json`, what the integration learnt about the configured
+  boxes (public names, sensor ids, last values and their times). No secret.
+- **Gladys**: the integration reads the location of a house only when the
+  user runs the nearby search, and sends it to openSenseMap as the center of
+  that search. The coordinates are not stored nor logged.
+
 Out of scope: Gladys Assistant itself (see its
 [security policy](https://github.com/GladysAssistant/Gladys/security/policy)),
-and the third-party services and devices the integration talks to.
+and the openSenseMap service.

@@ -1,177 +1,633 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "openSenseMap",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Measurements of openSenseMap citizen sensor boxes (senseBox), yours or nearby, in Gladys.",
+    "fr": "Les mesures des boîtes de capteurs citoyens openSenseMap (senseBox), la vôtre ou voisines.",
+    "de": "Messwerte der Bürgersensor-Boxen von openSenseMap (senseBox), deine oder in der Nähe.",
+    "es": "Las mediciones de las cajas de sensores ciudadanos openSenseMap (senseBox), la suya o cercanas."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
-  "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "docker_image": "ghcr.io/guim31/gladys-opensensemap:1.0.0",
+  "gladys_version": ">=5.2.0",
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-opensensemap/main/cover.png",
+  "categories": ["environment"],
+  "transports": ["cloud"],
+  "location": true,
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "openSenseMap boxes",
+        "fr": "Boîtes openSenseMap",
+        "de": "openSenseMap-Boxen",
+        "es": "Cajas openSenseMap"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "Read public openSenseMap boxes (no account) by their id, shown in the address of the box on the map. Not affiliated with openSenseMap or senseBox.",
+        "fr": "Lisez des boîtes publiques openSenseMap (sans compte) par leur identifiant, visible dans l'adresse de la boîte sur la carte. Non affilié à openSenseMap ni à senseBox.",
+        "de": "Lies öffentliche openSenseMap-Boxen (ohne Konto) über ihre ID, die in der Adresse der Box auf der Karte steht. Nicht mit openSenseMap oder senseBox verbunden.",
+        "es": "Lea cajas públicas de openSenseMap (sin cuenta) por su identificador, visible en la dirección de la caja en el mapa. Sin afiliación con openSenseMap ni senseBox."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://opensensemap.org",
+          "label": {
+            "en": "Map of the boxes",
+            "fr": "Carte des boîtes",
+            "de": "Karte der Boxen",
+            "es": "Mapa de las cajas"
+          }
+        },
+        {
+          "url": "https://sensebox.de/en/",
+          "label": {
+            "en": "Build your own senseBox",
+            "fr": "Construire sa senseBox",
+            "de": "Eigene senseBox bauen",
+            "es": "Construir su senseBox"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
+      "key": "box_ids",
+      "type": "string",
+      "label": {
+        "en": "Box ids",
+        "fr": "Identifiants des boîtes",
+        "de": "Box-IDs",
+        "es": "Identificadores de las cajas"
       },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
-    },
-    {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
       "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
+        "en": "The ids of the boxes to read (24 characters, or the link of the box), separated by commas, 20 at most. The \"Find boxes near a house\" button below lists those around you.",
+        "fr": "Les identifiants des boîtes à lire (24 caractères, ou le lien de la boîte), séparés par des virgules, 20 au plus. Le bouton « Trouver les boîtes autour d'une maison » ci-dessous liste celles qui vous entourent.",
+        "de": "Die IDs der zu lesenden Boxen (24 Zeichen, oder der Link der Box), durch Kommas getrennt, höchstens 20. Der Button „Boxen um ein Haus finden“ unten listet die in deiner Nähe auf.",
+        "es": "Los identificadores de las cajas que desea leer (24 caracteres, o el enlace de la caja), separados por comas, 20 como máximo. El botón «Buscar cajas alrededor de una casa» más abajo lista las de su zona."
       },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
-    },
-    {
-      "key": "unit",
-      "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
+      "placeholder": {
+        "en": "e.g. 5cd81adfff898b001ae7c4c6",
+        "fr": "ex. 5cd81adfff898b001ae7c4c6",
+        "de": "z. B. 5cd81adfff898b001ae7c4c6",
+        "es": "p. ej. 5cd81adfff898b001ae7c4c6"
+      },
       "required": false,
-      "default": "celsius",
+      "default": ""
+    },
+    {
+      "key": "refresh_minutes",
+      "type": "select",
+      "label": {
+        "en": "Refresh",
+        "fr": "Relevé",
+        "de": "Abruf",
+        "es": "Lectura"
+      },
+      "description": {
+        "en": "How often each box is read. openSenseMap is a free service: 5 minutes is the fastest.",
+        "fr": "La fréquence de lecture de chaque boîte. openSenseMap est un service gratuit : 5 minutes au plus vite.",
+        "de": "Wie oft jede Box gelesen wird. openSenseMap ist ein kostenloser Dienst: höchstens alle 5 Minuten.",
+        "es": "La frecuencia de lectura de cada caja. openSenseMap es un servicio gratuito: 5 minutos como mínimo."
+      },
+      "required": false,
+      "default": "5",
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        {
+          "value": "5",
+          "label": {
+            "en": "Every 5 minutes",
+            "fr": "Toutes les 5 minutes",
+            "de": "Alle 5 Minuten",
+            "es": "Cada 5 minutos"
+          }
+        },
+        {
+          "value": "10",
+          "label": {
+            "en": "Every 10 minutes",
+            "fr": "Toutes les 10 minutes",
+            "de": "Alle 10 Minuten",
+            "es": "Cada 10 minutos"
+          }
+        },
+        {
+          "value": "15",
+          "label": {
+            "en": "Every 15 minutes",
+            "fr": "Toutes les 15 minutes",
+            "de": "Alle 15 Minuten",
+            "es": "Cada 15 minutos"
+          }
+        },
+        {
+          "value": "30",
+          "label": {
+            "en": "Every 30 minutes",
+            "fr": "Toutes les 30 minutes",
+            "de": "Alle 30 Minuten",
+            "es": "Cada 30 minutos"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "key": "language",
+      "type": "select",
+      "label": {
+        "en": "Language",
+        "fr": "Langue",
+        "de": "Sprache",
+        "es": "Idioma"
+      },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "Language of the feature names (set when a device is added) and of the scene texts.",
+        "fr": "Langue des noms de fonctionnalités (fixés à l'ajout d'un appareil) et des textes de scène.",
+        "de": "Sprache der Funktionsnamen (beim Hinzufügen eines Geräts festgelegt) und der Szenentexte.",
+        "es": "Idioma de los nombres de las funciones (fijados al añadir un dispositivo) y de los textos de escena."
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": "fr",
+      "options": [
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
+          }
+        }
+      ]
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
-      "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
+      "key": "find_nearby",
+      "label": {
+        "en": "Find boxes near a house",
+        "fr": "Trouver les boîtes autour d'une maison",
+        "de": "Boxen um ein Haus finden",
+        "es": "Buscar cajas alrededor de una casa"
+      },
+      "timeout_seconds": 30,
       "fields": [
         {
-          "key": "device",
+          "key": "house",
           "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
+          "source": "houses",
+          "label": {
+            "en": "House",
+            "fr": "Maison",
+            "de": "Haus",
+            "es": "Casa"
+          },
+          "description": {
+            "en": "Its location is set in Settings → Houses. Empty: the first located house.",
+            "fr": "Sa position se règle dans Paramètres → Maisons. Vide : la première maison située.",
+            "de": "Sein Standort wird unter Einstellungen → Häuser festgelegt. Leer: das erste Haus mit Standort.",
+            "es": "Su ubicación se define en Ajustes → Casas. Vacío: la primera casa con ubicación."
+          },
+          "required": false
+        },
+        {
+          "key": "radius_km",
+          "type": "select",
+          "label": {
+            "en": "Radius",
+            "fr": "Rayon",
+            "de": "Radius",
+            "es": "Radio"
+          },
+          "description": {
+            "en": "Empty: 5 km.",
+            "fr": "Vide : 5 km.",
+            "de": "Leer: 5 km.",
+            "es": "Vacío: 5 km."
+          },
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": {
+                "en": "1 km",
+                "fr": "1 km",
+                "de": "1 km",
+                "es": "1 km"
+              }
+            },
+            {
+              "value": "2",
+              "label": {
+                "en": "2 km",
+                "fr": "2 km",
+                "de": "2 km",
+                "es": "2 km"
+              }
+            },
+            {
+              "value": "5",
+              "label": {
+                "en": "5 km",
+                "fr": "5 km",
+                "de": "5 km",
+                "es": "5 km"
+              }
+            },
+            {
+              "value": "10",
+              "label": {
+                "en": "10 km",
+                "fr": "10 km",
+                "de": "10 km",
+                "es": "10 km"
+              }
+            },
+            {
+              "value": "20",
+              "label": {
+                "en": "20 km",
+                "fr": "20 km",
+                "de": "20 km",
+                "es": "20 km"
+              }
+            }
+          ]
         }
       ]
+    },
+    {
+      "key": "check_boxes",
+      "label": {
+        "en": "Check the boxes",
+        "fr": "Vérifier les boîtes",
+        "de": "Boxen prüfen",
+        "es": "Comprobar las cajas"
+      },
+      "timeout_seconds": 120
     }
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "box_offline",
+      "label": {
+        "en": "Box offline",
+        "fr": "Boîte hors ligne",
+        "de": "Box offline",
+        "es": "Caja sin conexión"
+      },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "A box sent no measurement for the chosen time. Fired once when that time is reached.",
+        "fr": "Une boîte n'a envoyé aucune mesure depuis la durée choisie. Déclenché une fois, quand elle est atteinte.",
+        "de": "Eine Box hat seit der gewählten Dauer keine Messung gesendet. Einmal ausgelöst, wenn sie erreicht ist.",
+        "es": "Una caja no ha enviado ninguna medición durante el tiempo elegido. Se activa una vez, cuando se alcanza."
       },
       "fields": [
         {
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
+          "label": {
+            "en": "Box",
+            "fr": "Boîte",
+            "de": "Box",
+            "es": "Caja"
+          },
+          "description": {
+            "en": "Empty: any box.",
+            "fr": "Vide : n'importe quelle boîte.",
+            "de": "Leer: jede Box.",
+            "es": "Vacío: cualquier caja."
+          },
+          "required": false
         },
         {
-          "key": "target",
-          "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
+          "key": "hours",
+          "type": "select",
+          "label": {
+            "en": "Without measurement for",
+            "fr": "Sans mesure depuis",
+            "de": "Ohne Messung seit",
+            "es": "Sin medición desde hace"
+          },
+          "required": true,
           "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
+            {
+              "value": "1",
+              "label": {
+                "en": "1 h",
+                "fr": "1 h",
+                "de": "1 Std.",
+                "es": "1 h"
+              }
+            },
+            {
+              "value": "3",
+              "label": {
+                "en": "3 h",
+                "fr": "3 h",
+                "de": "3 Std.",
+                "es": "3 h"
+              }
+            },
+            {
+              "value": "6",
+              "label": {
+                "en": "6 h",
+                "fr": "6 h",
+                "de": "6 Std.",
+                "es": "6 h"
+              }
+            },
+            {
+              "value": "12",
+              "label": {
+                "en": "12 h",
+                "fr": "12 h",
+                "de": "12 Std.",
+                "es": "12 h"
+              }
+            },
+            {
+              "value": "24",
+              "label": {
+                "en": "24 h",
+                "fr": "24 h",
+                "de": "24 Std.",
+                "es": "24 h"
+              }
+            },
+            {
+              "value": "48",
+              "label": {
+                "en": "48 h",
+                "fr": "48 h",
+                "de": "48 Std.",
+                "es": "48 h"
+              }
+            }
           ]
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "box_name",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": {
+            "en": "Box name",
+            "fr": "Nom de la boîte",
+            "de": "Name der Box",
+            "es": "Nombre de la caja"
+          }
+        },
+        {
+          "key": "offline_minutes",
+          "type": "number",
+          "label": {
+            "en": "Minutes without measurement",
+            "fr": "Minutes sans mesure",
+            "de": "Minuten ohne Messung",
+            "es": "Minutos sin medición"
+          }
+        },
+        {
+          "key": "last_measurement",
+          "type": "string",
+          "label": {
+            "en": "Last measurement (UTC)",
+            "fr": "Dernière mesure (UTC)",
+            "de": "Letzte Messung (UTC)",
+            "es": "Última medición (UTC)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "box_back_online",
+      "label": {
+        "en": "Box back online",
+        "fr": "Boîte de retour en ligne",
+        "de": "Box wieder online",
+        "es": "Caja de nuevo en línea"
+      },
+      "description": {
+        "en": "A box measures again after being reported offline.",
+        "fr": "Une boîte mesure de nouveau après avoir été signalée hors ligne.",
+        "de": "Eine Box misst wieder, nachdem sie als offline gemeldet wurde.",
+        "es": "Una caja vuelve a medir tras haber sido señalada sin conexión."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Box",
+            "fr": "Boîte",
+            "de": "Box",
+            "es": "Caja"
+          },
+          "description": {
+            "en": "Empty: any box.",
+            "fr": "Vide : n'importe quelle boîte.",
+            "de": "Leer: jede Box.",
+            "es": "Vacío: cualquier caja."
+          },
+          "required": false
+        }
+      ],
+      "variables": [
+        {
+          "key": "box_name",
+          "type": "string",
+          "label": {
+            "en": "Box name",
+            "fr": "Nom de la boîte",
+            "de": "Name der Box",
+            "es": "Nombre de la caja"
+          }
+        },
+        {
+          "key": "offline_minutes",
+          "type": "number",
+          "label": {
+            "en": "Minutes without measurement",
+            "fr": "Minutes sans mesure",
+            "de": "Minuten ohne Messung",
+            "es": "Minutos sin medición"
+          }
         }
       ]
     }
   ],
   "scene_actions": [
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+      "key": "get_measurements",
+      "label": {
+        "en": "Get the measurements of a box",
+        "fr": "Obtenir les mesures d'une boîte",
+        "de": "Messwerte einer Box abrufen",
+        "es": "Obtener las mediciones de una caja"
       },
-      "timeout_seconds": 15,
+      "description": {
+        "en": "Its last values, with a sentence ready for a notification.",
+        "fr": "Ses dernières valeurs, avec une phrase prête pour une notification.",
+        "de": "Die letzten Werte der Box, mit einem fertigen Satz für eine Benachrichtigung.",
+        "es": "Sus últimos valores, con una frase lista para una notificación."
+      },
+      "timeout_seconds": 10,
       "fields": [
         {
-          "key": "device",
+          "key": "box",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
+          "label": {
+            "en": "Box",
+            "fr": "Boîte",
+            "de": "Box",
+            "es": "Caja"
+          },
           "required": true
         }
       ],
       "outputs": [
         {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Summary",
+            "fr": "Résumé",
+            "de": "Zusammenfassung",
+            "es": "Resumen"
+          }
+        },
+        {
+          "key": "age_minutes",
+          "type": "number",
+          "label": {
+            "en": "Measurement age (min)",
+            "fr": "Âge de la mesure (min)",
+            "de": "Alter der Messung (Min.)",
+            "es": "Antigüedad de la medición (min)"
+          }
+        },
+        {
+          "key": "temperature",
+          "type": "number",
+          "label": {
+            "en": "Temperature (°C)",
+            "fr": "Température (°C)",
+            "de": "Temperatur (°C)",
+            "es": "Temperatura (°C)"
+          }
+        },
+        {
+          "key": "humidity",
+          "type": "number",
+          "label": {
+            "en": "Humidity (%)",
+            "fr": "Humidité (%)",
+            "de": "Luftfeuchtigkeit (%)",
+            "es": "Humedad (%)"
+          }
+        },
+        {
+          "key": "pressure",
+          "type": "number",
+          "label": {
+            "en": "Pressure (hPa)",
+            "fr": "Pression (hPa)",
+            "de": "Luftdruck (hPa)",
+            "es": "Presión (hPa)"
+          }
+        },
+        {
+          "key": "pm25",
+          "type": "number",
+          "label": {
+            "en": "PM2.5 (µg/m³)",
+            "fr": "PM2.5 (µg/m³)",
+            "de": "PM2.5 (µg/m³)",
+            "es": "PM2.5 (µg/m³)"
+          }
+        },
+        {
+          "key": "pm10",
+          "type": "number",
+          "label": {
+            "en": "PM10 (µg/m³)",
+            "fr": "PM10 (µg/m³)",
+            "de": "PM10 (µg/m³)",
+            "es": "PM10 (µg/m³)"
+          }
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
+      "key": "box_measurements",
+      "label": {
+        "en": "Box measurements",
+        "fr": "Mesures d'une boîte",
+        "de": "Messwerte einer Box",
+        "es": "Mediciones de una caja"
+      },
       "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+        "en": "The live values of a box and the time of its last measurement.",
+        "fr": "Les valeurs d'une boîte et l'heure de sa dernière mesure.",
+        "de": "Die Werte einer Box und die Zeit ihrer letzten Messung.",
+        "es": "Los valores de una caja y la hora de su última medición."
       },
       "icon": "activity",
-      "action_timeout_seconds": 15
+      "settings": [
+        {
+          "key": "box",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Box",
+            "fr": "Boîte",
+            "de": "Box",
+            "es": "Caja"
+          },
+          "description": {
+            "en": "Empty: one row per box, with its last measurement.",
+            "fr": "Vide : une ligne par boîte, avec sa dernière mesure.",
+            "de": "Leer: eine Zeile pro Box, mit ihrer letzten Messung.",
+            "es": "Vacío: una fila por caja, con su última medición."
+          },
+          "required": false
+        }
+      ]
     }
   ]
 }

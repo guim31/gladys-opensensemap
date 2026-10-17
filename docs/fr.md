@@ -1,67 +1,166 @@
-# Template de démonstration
+# openSenseMap
 
-Ceci est la documentation utilisateur de l'intégration. Gladys ré-héberge ce
-fichier et affiche un lien **Documentation** permanent vers lui dans l'écran
-de configuration (dans la langue de l'utilisateur, avec l'anglais en repli) —
-c'est au moment de configurer que l'utilisateur en a le plus besoin. Gardez
-les courtes indications d'accueil dans les blocs `section` du `config_schema`
-du manifest ; mettez ici le pas-à-pas détaillé (captures d'écran, dépannage…).
+Les mesures des boîtes de capteurs citoyens
+d'[openSenseMap](https://opensensemap.org) (senseBox, airRohr et boîtes
+personnalisées) : votre propre boîte, ou les boîtes publiques autour de chez
+vous.
 
-## Ce que vous obtenez
+Cette intégration n'est pas affiliée à openSenseMap, ni à openSenseLab, ni à
+senseBox.
 
-Six appareils de démonstration apparaissent après l'installation : une
-station météo (vraies données Open-Meteo), un interrupteur, une lampe
-variable, une prise connectée avec mesure de puissance, un détecteur de
-mouvement et une caméra.
+## Ce que fait l'intégration
+
+- Lit les **boîtes publiques d'openSenseMap** par leur identifiant, sans compte
+  ni clé.
+- Crée **un appareil par boîte**, avec une fonctionnalité par capteur qu'elle
+  connaît : température, humidité, pression, PM2.5, PM10, PM1, CO2, COV, bruit,
+  luminosité, indice UV, vitesse du vent, intensité de pluie, humidité et
+  température du sol.
+- Indique l'âge de la dernière mesure de chaque boîte : une boîte muette est
+  signalée, ses anciennes valeurs ne sont pas renvoyées.
+- Ajoute un widget **Mesures d'une boîte**, deux déclencheurs de scène **Boîte
+  hors ligne** et **Boîte de retour en ligne**, et une action de scène
+  **Obtenir les mesures d'une boîte**.
+
+Lecture seule : l'intégration ne modifie jamais rien sur une boîte.
+
+## Prérequis
+
+- Gladys Assistant **5.2.0** ou plus récent.
+- Un accès à Internet (l'API publique d'openSenseMap).
+- Pour la recherche autour de la maison : la position de votre maison, dans
+  **Paramètres → Maisons**. L'intégration demande l'accès aux coordonnées de la
+  maison à l'installation ; elle ne s'en sert que pour cette recherche.
 
 ## Configuration
 
-1. Ouvrez l'onglet **Configuration** de l'intégration.
-2. Renseignez la **latitude** et la **longitude** que la station météo de
-   démonstration doit observer (Paris par défaut), et choisissez votre unité
-   de température. L'**intervalle de rafraîchissement** règle la fréquence
-   de lecture de la station météo et de la puissance de la prise : toutes
-   les 5 minutes par défaut, toutes les minutes au plus.
-3. Enregistrez : les appareils apparaissent dans l'onglet **Découverte**,
-   prêts à être ajoutés.
+### Choisir les boîtes
 
-Le réglage **Préférer la connexion locale** pilote la prise de
-démonstration : elle affiche en badge le canal réellement utilisé (local ou
-cloud), avec un point orange quand elle fonctionne en mode dégradé (local
-refusé, bascule cloud).
+Chaque boîte a un identifiant de 24 caractères, visible dans son adresse sur la
+carte : `https://opensensemap.org/explore/5cd81adfff898b001ae7c4c6`. Deux
+façons de le trouver :
 
-## Actions
+1. Cliquez sur **Trouver les boîtes autour d'une maison**, choisissez la maison
+   et un rayon : le résultat liste les boîtes qui ont mesuré ces dernières
+   24 heures, de la plus proche à la plus loin, avec leur distance et leurs
+   mesures. Copiez les identifiants voulus.
+2. Ou ouvrez la [carte](https://opensensemap.org), cliquez sur une boîte et
+   copiez la fin de l'adresse (le lien entier est accepté aussi).
 
-- **Tester le fournisseur météo** — effectue une requête en direct vers
-  Open-Meteo et affiche la température et l'humidité actuelles sous le
-  bouton.
-- **Identifier un appareil** — choisissez un de vos appareils dans la liste
-  et il se signale (la lampe de démonstration « clignote » dans les logs).
+Collez les identifiants dans **Identifiants des boîtes**, séparés par des
+virgules (20 boîtes au plus), et enregistrez. Les boîtes apparaissent alors
+dans l'onglet **Découverte** de l'intégration : ajoutez à Gladys celles que
+vous voulez.
+
+### Autres réglages
+
+- **Relevé** : toutes les 5 minutes par défaut (10, 15 ou 30 minutes au
+  choix). openSenseMap est un service gratuit tenu par une association :
+  5 minutes au plus vite.
+- **Langue** : la langue des noms de fonctionnalités (fixés à l'ajout d'un
+  appareil) et des textes de scène. Français par défaut.
+
+**Vérifier les boîtes** lit toutes les boîtes tout de suite et indique, pour
+chacune, l'âge de sa dernière mesure, les mesures publiées et les capteurs
+laissés de côté.
+
+## Appareils
+
+Un appareil par boîte, au nom de la boîte (`Saint-Simon Station (openSenseMap)`).
+Ses fonctionnalités sont les capteurs de la boîte que l'intégration connaît :
+
+| Mesure             | Unité dans Gladys | Remarques                                          |
+| ------------------ | ----------------- | -------------------------------------------------- |
+| Température        | °C                |                                                    |
+| Humidité           | %                 |                                                    |
+| Pression           | hPa               | convertie depuis les Pa si besoin                  |
+| PM2.5, PM10, PM1   | µg/m³             | PM1 est une fonctionnalité PM2.5 nommée « PM1 »    |
+| CO2                | ppm               |                                                    |
+| COV                | ppb               | seulement si la boîte envoie des ppb               |
+| Bruit              | dB                |                                                    |
+| Luminosité         | lx                |                                                    |
+| Indice UV          | indice UV         | seulement un vrai indice UV, pas des µW/cm²        |
+| Vitesse du vent    | km/h              | convertie depuis les m/s si besoin ; rafales aussi |
+| Intensité de pluie | mm/h              |                                                    |
+| Humidité du sol    | %                 |                                                    |
+| Température du sol | °C                |                                                    |
+| Âge de la mesure   | minutes           | depuis la dernière mesure de la boîte              |
+
+Les propriétaires nomment leurs capteurs librement (« Temperatur », « Temp ~
+Air », « CO₂ »…) : l'intégration reconnaît une mesure à son unité et à son
+titre. Quand une boîte mesure deux fois la même chose, la seconde
+fonctionnalité porte le titre du propriétaire, par exemple « Température
+(Lufttemperatur) ».
+
+Une valeur est publiée tant qu'elle a moins d'**une heure**. Au-delà, la boîte
+est affichée hors ligne et seul l'**Âge de la mesure** continue d'avancer.
+
+## Widget
+
+**Mesures d'une boîte** : avec une boîte choisie dans ses réglages, jusqu'à six
+tuiles en direct (une par mesure) et l'heure de la dernière mesure, en rouge
+quand la boîte est hors ligne. Sans boîte : une ligne par boîte, avec
+l'ancienneté de sa dernière mesure.
 
 ## Scènes
 
-L'intégration ajoute ses propres cartes à l'éditeur de scènes (Gladys 5.1
-ou plus récent), dans la catégorie **Intégrations** :
+### Déclencheur : Boîte hors ligne
 
-- **Mouvement détecté** (déclencheur) — lance la scène quand un détecteur
-  de démonstration voit bouger quelque chose. Choisissez éventuellement le
-  détecteur et ce qui a bougé (personne, animal) ; laissés vides, toute
-  détection correspond. Les actions suivantes peuvent lire ce qui a bougé
-  avec `{{triggerEvent.data.target}}`.
-- **Identifier un appareil** (action) — fait se signaler l'appareil choisi.
-  Elle indique si l'appareil a pu se signaler, pour que les actions
-  suivantes puissent en dépendre.
+Se déclenche une fois quand une boîte n'a rien envoyé depuis la durée choisie :
+1, 3, 6, 12, 24 ou 48 heures. Laissez **Boîte** vide pour surveiller toutes les
+boîtes. Variables : le nom de la boîte, les minutes sans mesure, l'heure de la
+dernière mesure (UTC).
 
-## Tableau de bord
+L'intégration ne déclare une boîte hors ligne qu'après une réponse réussie
+d'openSenseMap : une panne du service n'est pas une boîte hors ligne. Une boîte
+déjà muette quand vous l'ajoutez ne déclenche rien.
 
-Ajoutez le widget **État de la démo** à un tableau de bord : il affiche en
-direct la température de la station météo et la puissance de la prise du
-bureau, la connexion utilisée par la prise (en orange si dégradée) et la
-position observée. Son bouton **Identifier la lampe** fait se signaler la
-lampe de démonstration.
+### Déclencheur : Boîte de retour en ligne
+
+Se déclenche quand une boîte signalée hors ligne mesure de nouveau. Variables :
+le nom de la boîte et le nombre de minutes de silence.
+
+### Action : Obtenir les mesures d'une boîte
+
+Donne les dernières valeurs d'une boîte aux actions suivantes : un **résumé**
+prêt à l'emploi (« Saint-Simon Station (openSenseMap): Température 17,8 °C ·
+Humidité 99,9 % · il y a 3 min »), l'**âge** de la mesure en minutes, et la
+température, l'humidité, la pression, les PM2.5 et PM10 quand la boîte les
+mesure et qu'ils sont récents.
+
+## Exemples de scènes
+
+- **Me prévenir quand ma boîte s'arrête** : déclencheur **Boîte hors ligne**,
+  boîte « Ma senseBox », 6 heures → envoyer le message « Ma senseBox n'a rien
+  envoyé depuis 6 heures : vérifiez son alimentation et son Wi-Fi. »
+- **Bulletin du matin** : tous les jours à 7 h → **Obtenir les mesures d'une
+  boîte** → envoyer le message `{{summary}}`.
+- **Aérer la pièce** : quand la fonctionnalité **CO2** d'une boîte intérieure
+  dépasse 1 200 ppm → envoyer la notification « Aérez la salle de classe ».
 
 ## Dépannage
 
-L'intégration journalise tout ce qu'elle fait : consultez les logs de
-l'intégration depuis l'interface Gladys (ou `docker logs` sur l'hôte) avec
-`LOG_LEVEL=debug` pour le détail complet.
+- **Aucun appareil dans l'onglet Découverte** : vérifiez les identifiants avec
+  **Vérifier les boîtes**. « Boîte inconnue d'openSenseMap » signale un
+  identifiant erroné.
+- **Une boîte n'affiche aucune valeur** : elle n'a pas mesuré depuis plus d'une
+  heure (voir l'**Âge de la mesure**), ou ses capteurs sont d'un type laissé de
+  côté (listés par **Vérifier les boîtes**).
+- **« L'API d'openSenseMap ne répond pas »** : le service est en panne ou
+  injoignable depuis Gladys ; les relevés reprennent d'eux-mêmes.
+- **Un nom de fonctionnalité est dans la mauvaise langue** : les noms sont
+  fixés à l'ajout de l'appareil. Changez la **Langue**, supprimez l'appareil et
+  ajoutez-le de nouveau depuis l'onglet Découverte (son historique est perdu).
+
+## Limites
+
+- Des capteurs citoyens, pas des stations de référence : les capteurs de
+  particules bon marché surestiment par air humide, un capteur au soleil lit
+  trop chaud. Les valeurs sont indicatives.
+- Laissés de côté : les UV en µW/cm² (pas d'unité Gladys, pas de conversion
+  fiable), les PM4, les COV en kOhm, la direction du vent et les cumuls de
+  pluie. **Vérifier les boîtes** les liste pour chaque boîte. La recherche
+  autour de la maison ignore les boîtes mobiles (vélos).
+- Une fonctionnalité n'est jamais retirée : un capteur ôté d'une boîte garde sa
+  fonctionnalité, sans nouvelle valeur.
+- 20 boîtes au plus, chacune lue toutes les 5 minutes au plus.

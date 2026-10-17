@@ -1,0 +1,160 @@
+{
+  "_id": "591f578c51d34600116a8ea5",
+  "createdAt": "2022-03-30T11:25:43.288Z",
+  "updatedAt": "2026-10-17T14:51:29.705Z",
+  "name": "Wetterstation Erpho",
+  "exposure": "outdoor",
+  "model": "homeWifiFeinstaub",
+  "sensors": [
+    {
+      "title": "Temperatur",
+      "unit": "°C",
+      "sensorType": "HDC1008",
+      "icon": "osem-thermometer",
+      "_id": "591f578c51d34600116a8ea6",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:51:29.695Z",
+        "value": "14.04"
+      }
+    },
+    {
+      "title": "rel. Luftfeuchte",
+      "unit": "%",
+      "sensorType": "HDC1008",
+      "icon": "osem-humidity",
+      "_id": "591f578c51d34600116a8ea7",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:51:29.695Z",
+        "value": "0.00"
+      }
+    },
+    {
+      "title": "Luftdruck",
+      "unit": "hPa",
+      "sensorType": "BMP280",
+      "icon": "osem-barometer",
+      "_id": "591f578c51d34600116a8ea8",
+      "lastMeasurement": {
+        "createdAt": "2024-10-05T03:22:03.226Z",
+        "value": "955.57"
+      }
+    },
+    {
+      "title": "Beleuchtungsstärke",
+      "unit": "lx",
+      "sensorType": "TSL45315",
+      "icon": "osem-brightness",
+      "_id": "591f578c51d34600116a8ea9",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:51:29.695Z",
+        "value": "276.00"
+      }
+    },
+    {
+      "title": "UV-Intensität",
+      "unit": "μW/cm²",
+      "sensorType": "VEML6070",
+      "icon": "osem-brightness",
+      "_id": "591f578c51d34600116a8eaa",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:51:29.695Z",
+        "value": "2.00"
+      }
+    },
+    {
+      "_id": "5923371251d3460011906244",
+      "icon": "osem-brightness",
+      "sensorType": "VEML6070",
+      "unit": "-",
+      "title": "UV-Index",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:51:29.695Z",
+        "value": "0.00"
+      }
+    },
+    {
+      "title": "PM10",
+      "unit": "µg/m³",
+      "sensorType": "SDS 011",
+      "icon": "osem-cloud",
+      "_id": "59456e66a4ad590011177282",
+      "lastMeasurement": {
+        "createdAt": "2024-10-05T03:22:03.226Z",
+        "value": "18.50"
+      }
+    },
+    {
+      "title": "PM2.5",
+      "unit": "µg/m³",
+      "sensorType": "SDS 011",
+      "icon": "osem-cloud",
+      "_id": "59458624a4ad590011186665",
+      "lastMeasurement": {
+        "createdAt": "2024-10-05T03:22:03.226Z",
+        "value": "9.00"
+      }
+    },
+    {
+      "_id": "594838afa4ad59001133dd62",
+      "icon": "osem-particulate-matter",
+      "sensorType": "WS",
+      "unit": "km/h",
+      "title": "Windgeschwindigkeit",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:51:29.695Z",
+        "value": "0.00"
+      }
+    },
+    {
+      "_id": "594838afa4ad59001133dd63",
+      "icon": "osem-particulate-matter",
+      "sensorType": "WS",
+      "unit": "km/h",
+      "title": "Windböen",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:51:29.695Z",
+        "value": "0.00"
+      }
+    },
+    {
+      "_id": "594838afa4ad59001133dd64",
+      "icon": "osem-particulate-matter",
+      "sensorType": "WS",
+      "unit": "°",
+      "title": "Windrichtung",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:51:29.695Z",
+        "value": "248.37"
+      }
+    },
+    {
+      "_id": "594838afa4ad59001133dd65",
+      "icon": "osem-sprinkles",
+      "sensorType": "WS",
+      "unit": "mm/m²",
+      "title": "Niederschlag",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:51:29.695Z",
+        "value": "0.00"
+      }
+    }
+  ],
+  "description": "- TESTBETRIEB -",
+  "currentLocation": {
+    "coordinates": [7.645218, 51.96422],
+    "type": "Point",
+    "timestamp": "2017-05-19T20:37:32.000Z"
+  },
+  "lastMeasurementAt": "2026-10-17T14:51:29.695Z",
+  "grouptag": [""],
+  "loc": [
+    {
+      "geometry": {
+        "coordinates": [7.645218, 51.96422],
+        "type": "Point",
+        "timestamp": "2017-05-19T20:37:32.000Z"
+      },
+      "type": "Feature"
+    }
+  ]
+}

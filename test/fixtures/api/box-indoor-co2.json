@@ -1,0 +1,50 @@
+{
+  "_id": "682c7e1ceecb860007886939",
+  "grouptag": ["CO2 Ampel"],
+  "model": "custom",
+  "name": "Geo1_Floor2_SeminarRoom242_Ceiling",
+  "currentLocation": {
+    "type": "Point",
+    "coordinates": [7.59606, 51.969536],
+    "timestamp": "2026-06-22T03:15:25.877Z"
+  },
+  "exposure": "indoor",
+  "sensors": [
+    {
+      "_id": "682c7e1ceecb86000788693a",
+      "icon": "osem-co2",
+      "title": "CO₂",
+      "unit": "ppm",
+      "sensorType": "SCD30",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:51:21.604Z",
+        "value": "0.00"
+      }
+    },
+    {
+      "_id": "682c7e1ceecb86000788693b",
+      "icon": "osem-thermometer",
+      "title": "Temperature",
+      "unit": "°C",
+      "sensorType": "SCD30",
+      "lastMeasurement": {
+        "createdAt": "2026-10-17T14:51:21.604Z",
+        "value": "28.22"
+      }
+    }
+  ],
+  "updatedAt": "2026-10-17T14:51:21.694Z",
+  "createdAt": "2025-05-20T13:05:32.043Z",
+  "lastMeasurementAt": "2026-10-17T14:51:21.604Z",
+  "image": "682c7e1ceecb860007886939_szyd34.jpg",
+  "loc": [
+    {
+      "geometry": {
+        "type": "Point",
+        "coordinates": [7.59606, 51.969536],
+        "timestamp": "2026-06-22T03:15:25.877Z"
+      },
+      "type": "Feature"
+    }
+  ]
+}
