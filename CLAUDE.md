@@ -16,8 +16,8 @@ its only runtime dependency. It started from the official JavaScript template.
 ```bash
 npm install
 npm test                                  # node --test, the built-in runner
-node --test test/devices.test.js          # one file
-node --test --test-name-pattern "plug"    # tests whose name matches
+node --test test/app.test.js              # one file
+node --test --test-name-pattern "offline" # tests whose name matches
 npm run lint                              # ESLint
 npm run format:check                      # Prettier, as the CI runs it
 npm run format                            # Prettier, fix in place
@@ -32,15 +32,23 @@ pushing.
 
 ```
 index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+src/app.js                        every handler (connection, discovery, poll, actions, widget, scene)
+src/api.js                        openSenseMap client: one box, nearby search; parseBox
+src/phenomena.js                  measure of a sensor from its unit and title, value conversion
+src/devices.js                    Gladys device of a box (external ids, features, names)
+src/hub.js                        records of the boxes, freshness, states, offline triggers
+src/poller.js                     the container's own timer (onPoll is only a fallback)
+src/store.js                      /data/boxes.json (atomic, coalesced writes)
+src/actions.js                    configuration buttons: find_nearby, check_boxes
+src/scenes.js                     scene action get_measurements
+src/widgets.js                    widget box_measurements
+src/i18n.js                       every user-facing text, en/fr/de/es
+src/issues.js                     repeated failures logged once
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
 gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (mandatory)
 test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+test/fixtures/api/                real answers of the openSenseMap API (Toulouse, Münster, 17/10/2026)
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -70,8 +78,9 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** exists in English, French, German and Spanish: action
+  messages, manifest texts, widget texts, feature names, and
+  `docs/{en,fr,de,es}.md` with the same sections (`test/i18n.test.js`).
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -233,3 +242,23 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Docs `en`, `fr`, `de`, `es` avec les mêmes sections.
 - Chauffe, ouverture, sécurité : ne rien rendre pilotable « comme un thermostat » ou par un assistant
   vocal quand une erreur serait dangereuse (leçon d'OctoPrint).
+
+## openSenseMap (cette intégration)
+
+- **API** : `GET https://api.opensensemap.org/boxes/<id>?format=json` (une boîte, chaque capteur avec
+  `lastMeasurement { value, createdAt }`, valeurs en **chaînes**) ; `GET /boxes?near=<lon>,<lat>&maxDistance=<m>`
+  pour la recherche. Sans compte. Identifiant inconnu : 404 `{"code":"NotFound"}` ; identifiant mal formé : 422.
+- **`/boxes?near=` sans filtre `date` renvoie toutes les boîtes, mortes comprises, avec `lastMeasurement` réduit à un
+  identifiant** (490 Ko pour 2 km à Münster). Avec `date=<de>,<à>` (fenêtre de 24 h), seules les boîtes actives,
+  avec leurs valeurs : c'est ce que fait la recherche.
+- L'API renvoie toujours la **dernière** mesure, même vieille de deux ans : la fraîcheur se juge sur `createdAt`
+  (seuil d'une heure, `STALE_MINUTES`). Une boîte morte peut garder `lastMeasurementAt` sans aucune valeur de
+  capteur (fixture `box-toulouse-offline`).
+- **Titres et unités libres** : « Temperatur », « rel. Luftfeuchte », « Lautstärke (LEQ 60s) » avec une icône de
+  thermomètre… On reconnaît par l'unité, puis le titre (`src/phenomena.js`). Les UV en µW/cm² (VEML6070) n'ont ni
+  unité Gladys ni conversion fiable vers l'indice UV : ignorés. Pression parfois en Pa (import airRohr) : /100.
+- Identifiants : appareil `box:<id de boîte>`, fonctionnalité `<id du capteur>` (24 hexa, stables même si le
+  propriétaire renomme), plus `age`. Ne jamais les dériver d'un titre.
+- Déclencheur `box_offline` : un événement par palier franchi (1, 3, 6, 12, 24, 48 h, valeur du champ `hours` en
+  chaîne, comparée par égalité par le cœur), jamais à la première observation ni pour une boîte non ajoutée, et
+  seulement après une réponse réussie de l'API (une panne d'openSenseMap n'est pas une boîte hors ligne).
