@@ -55,7 +55,7 @@ test('a lasting API failure: one line when it starts, one when it ends', async (
   await w.app.poller.cycle();
   const logged = lines.slice(before);
   assert.equal(logged.filter((line) => line.includes('HTTP 503')).length, 1, logged.join('\n'));
-  assert.equal(logged.filter((line) => line.includes('API answers again')).length, 1);
+  assert.equal(logged.filter((line) => line.includes(`Box ${SIMON} answers again`)).length, 1);
 });
 
 test('a box gone silent: said once when it goes offline, once when it is back', async (t) => {

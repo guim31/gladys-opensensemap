@@ -163,22 +163,47 @@ export class Hub {
     let box;
     try {
       box = await fetchBox(id, this.deps);
-      this.issues.ok('api', 'openSenseMap API answers again');
-      this.issues.ok(`box:${id}`, `Box ${id} found again`);
+      this.issues.ok(`box:${id}`, `Box ${id} answers again`);
     } catch (err) {
       const notFound = err instanceof ApiError && err.status === 404;
-      if (notFound) {
-        this.issues.fail(`box:${id}`, `Box ${id} not found on openSenseMap: check its id`);
-      } else if (err instanceof ApiError) {
-        this.issues.fail('api', err.message);
-      }
-      this.lastResults.set(id, { ok: false, error: err.message, notFound, at: this.now() });
+      // One line per box when it starts failing, one when it is back: a box
+      // the API fails to serve never makes the others flap.
+      this.issues.fail(
+        `box:${id}`,
+        notFound
+          ? `Box ${id} not found on openSenseMap: check its id`
+          : `Box ${id}: ${err.message}`,
+      );
+      const transient = !(err instanceof ApiError) || isTransient(err.status);
+      this.lastResults.set(id, {
+        ok: false,
+        error: err.message,
+        notFound,
+        transient,
+        at: this.now(),
+      });
       throw err;
     }
     this.lastResults.set(id, { ok: true, at: this.now() });
     const record = this.apply(box);
-    await this.publishStates(record);
+    try {
+      await this.publishStates(record);
+      this.issues.ok('gladys', 'Gladys accepts the states again');
+    } catch (err) {
+      this.issues.fail('gladys', `Cannot publish to Gladys: ${err.message}`);
+    }
     return record;
+  }
+
+  /**
+   * True when the API itself looks down: every configured box failed its
+   * last read for a network, rate-limit or server reason.
+   */
+  apiDown(config = this.getConfig()) {
+    const results = this.boxIds(config).map((id) => this.lastResults.get(id));
+    return (
+      results.length > 0 && results.every((result) => result && !result.ok && result.transient)
+    );
   }
 
   /** Merge a box answer into its record. */
@@ -262,12 +287,15 @@ export class Hub {
       this.issues.ok(key, `${deviceName(record)}: measurements again`);
     }
 
-    const step = OFFLINE_HOURS.filter((hours) => minutes >= hours * 60).pop() ?? 0;
+    // Same comparison as isOffline: the 1 h step and the red widget agree.
+    const step = OFFLINE_HOURS.filter((hours) => minutes > hours * 60).pop() ?? 0;
     const previous = record.offlineStep;
-    record.offlineStep = step;
-    // The first look at a box, or a box not added to Gladys: no event (a box
-    // already silent for days at install time is no news).
-    if (previous === undefined || previous === null || !this.isCreated(record)) {
+    // A box not added to Gladys is not followed (read once): its step is
+    // forgotten, so the first read after it is added is a first look again.
+    record.offlineStep = this.isCreated(record) ? step : null;
+    // The first look at a box: no event (a box already silent for days when
+    // it is added is no news).
+    if (previous === undefined || previous === null || record.offlineStep === null) {
       return;
     }
     const device = idsOf(this.gladys, record).device;
@@ -307,9 +335,8 @@ export class Hub {
    * @param {{ force?: boolean }} [options] force: the device was just added
    */
   async publishStates(record, { force = false } = {}) {
-    const events = this.pendingEvents.get(record.id) ?? [];
-    this.pendingEvents.delete(record.id);
     if (!this.isCreated(record)) {
+      this.pendingEvents.delete(record.id);
       return;
     }
     const ids = idsOf(this.gladys, record);
@@ -331,14 +358,20 @@ export class Hub {
     if (states.length > 0) {
       await this.gladys.publishChangedStates(states, { heartbeat: STATE_HEARTBEAT_MS });
     }
-    for (const event of events) {
+    // An event leaves the queue once Gladys took it: a failed publication is
+    // tried again on the next read.
+    const events = this.pendingEvents.get(record.id) ?? [];
+    while (events.length > 0) {
+      const event = events[0];
+      await this.gladys.publishSceneEvent(event.key, event.data);
+      events.shift();
       logger.info(
         event.key === TRIGGER.BOX_OFFLINE
           ? `${deviceName(record)}: offline for ${event.data.hours} h`
           : `${deviceName(record)}: back online`,
       );
-      await this.gladys.publishSceneEvent(event.key, event.data);
     }
+    this.pendingEvents.delete(record.id);
   }
 
   /** Forget the records of the boxes no longer configured. */
@@ -359,4 +392,9 @@ export class Hub {
       await this.persist();
     }
   }
+}
+
+/** A failure of the service rather than of one box: network, rate limit, server error. */
+function isTransient(status) {
+  return status === 0 || status === 429 || status >= 500;
 }

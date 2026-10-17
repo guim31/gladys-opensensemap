@@ -1,5 +1,6 @@
 // -----------------------------------------------------------------------------
-// The nearby search, on a real answer of the API around Toulouse.
+// The nearby search, on a real answer of the API around Toulouse (12 boxes,
+// 9 of them silent for weeks or years).
 // -----------------------------------------------------------------------------
 
 import { test } from 'node:test';
@@ -35,7 +36,8 @@ test('the boxes that measured around the house, nearest first, with their measur
   const url = new URL(world.network.calls.at(-1).url);
   assert.equal(url.searchParams.get('near'), '1.444,43.604');
   assert.equal(url.searchParams.get('maxDistance'), '20000');
-  assert.match(url.searchParams.get('date'), /^2026-10-16T15:00:00Z,2026-10-17T15:00:00Z$/);
+  // No `date` filter: 25 s on the server; the dead boxes are sorted out here.
+  assert.equal(url.searchParams.get('date'), null);
 });
 
 test('no located house: the action says where to set it', async () => {

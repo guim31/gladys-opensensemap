@@ -4,9 +4,12 @@
 //   GET https://api.opensensemap.org/boxes/<box id>?format=json
 //       one box: name, exposure, location, and each sensor with its title,
 //       unit and last measurement { value, createdAt }
-//   GET https://api.opensensemap.org/boxes?near=<lon>,<lat>&maxDistance=<m>&date=<from>,<to>&format=json
-//       the boxes around a point that measured in the time window (the
-//       nearby search), with the same sensor details
+//   GET https://api.opensensemap.org/boxes?near=<lon>,<lat>&maxDistance=<m>&format=json
+//       every box around a point, dead ones included, with its sensors (their
+//       lastMeasurement reduced to an id) and lastMeasurementAt: the nearby
+//       search. Its `date` filter would keep only the active boxes, but takes
+//       25 s on the server (17/10/2026) where the plain query takes 0.2 to
+//       0.5 s, 1.5 MB for 20 km around Berlin: the boxes are sorted out here.
 //
 // Terms (docs.opensensemap.org): free and open (data under PDDL), run by the
 // non-profit openSenseLab, rate-limited per address. The integration reads a
@@ -161,11 +164,9 @@ export const NEARBY_WINDOW_MS = 24 * 60 * 60 * 1000;
  */
 export async function fetchNearby(center, radiusKm, deps = {}) {
   const now = deps.now?.() ?? Date.now();
-  const iso = (ms) => new Date(ms).toISOString().replace(/\.\d{3}Z$/, 'Z');
   const query = new URLSearchParams({
     near: `${center.longitude},${center.latitude}`,
     maxDistance: String(Math.round(radiusKm * 1000)),
-    date: `${iso(now - NEARBY_WINDOW_MS)},${iso(now)}`,
     format: 'json',
   });
   const body = await getJson(`/boxes?${query}`, deps);
@@ -180,7 +181,12 @@ export async function fetchNearby(center, radiusKm, deps = {}) {
     } catch {
       continue; // one malformed box never hides the others
     }
-    if (!box.location || box.exposure === 'mobile') {
+    if (
+      !box.location ||
+      box.exposure === 'mobile' ||
+      !box.lastMeasurementAt ||
+      now - box.lastMeasurementAt > NEARBY_WINDOW_MS
+    ) {
       continue;
     }
     const distance = distanceKm(center, box.location);

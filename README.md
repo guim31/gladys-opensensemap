@@ -53,8 +53,8 @@ under the PDDL. The integration:
 - reads only the boxes whose device was added to Gladys (and, once, the ones
   it does not know yet, to list them in the Discovery tab);
 - sends a `User-Agent` naming the integration and this repository;
-- limits the nearby search to the boxes that measured in the last 24 hours
-  (`date` filter), which keeps the answers small.
+- runs the nearby search only on request, and lists the boxes that measured
+  in the last 24 hours.
 
 ## Limits
 

@@ -98,3 +98,16 @@ test('values: strings to numbers, Pa to hPa, m/s to km/h, rounded', () => {
   assert.equal(value('Temperatur', '°C', 'NaN'), null);
   assert.equal(value('Temperatur', '°C', null), null);
 });
+
+test('unit and title variants found in the wild (review)', () => {
+  const of = (title, unit) => classify({ title, unit })?.measure ?? null;
+  assert.equal(of('PM2.5', 'µg/m3'), 'pm25', 'micro sign, m3');
+  assert.equal(of('PM10', 'µg/m^3'), 'pm10');
+  assert.equal(of('PM10.0', 'µg/m³'), 'pm10');
+  assert.equal(of('Luftfeuchte', '%RH'), 'humidity');
+  assert.equal(of('RH', '%'), 'humidity');
+  assert.equal(of('Feuchte', '% rF'), 'humidity');
+  assert.equal(of('Taupunkt', '°C'), null);
+  assert.equal(of('Gefühlte Temperatur', '°C'), null);
+  assert.equal(of('CPU', '°C'), null);
+});

@@ -37,25 +37,27 @@ export const MEASURE_ORDER = [
 const has = (pattern) => (title) => pattern.test(title);
 const SOIL = /boden|soil|\bsol\b|suelo/i;
 const anyTitle = () => true;
+// A °C that is not the air temperature: dew point, felt temperature, the board.
+const NOT_AIR = /taupunkt|dew|ros[ée]e|roc[ií]o|gef[üu]hlt|feels|ressenti|cpu|board|chip/i;
 
 // Normalized units (lowercase, no space, µ unified) → the rules that may use them.
 // Each rule: measure, a title test, and the conversion to the Gladys unit.
 const RULES = {
   '°c': [
     { measure: 'soil_temperature', title: has(SOIL) },
-    { measure: 'temperature', title: anyTitle },
+    { measure: 'temperature', title: (title) => !NOT_AIR.test(title) },
   ],
-  '℃': [{ measure: 'temperature', title: anyTitle }],
+  '℃': [{ measure: 'temperature', title: (title) => !NOT_AIR.test(title) }],
   '%': [
     { measure: 'soil_moisture', title: has(SOIL) },
-    { measure: 'humidity', title: has(/feucht|humid|humed|hygro/i) },
+    { measure: 'humidity', title: has(/feucht|humid|humed|hygro|\brh\b|\brf\b/i) },
   ],
   pa: [{ measure: 'pressure', title: anyTitle, convert: (value) => value / 100 }],
   hpa: [{ measure: 'pressure', title: anyTitle }],
   mbar: [{ measure: 'pressure', title: anyTitle }],
   kpa: [{ measure: 'pressure', title: anyTitle, convert: (value) => value * 10 }],
   'µg/m³': [
-    { measure: 'pm10', title: has(/pm\s*10(?![.,\d])/i) },
+    { measure: 'pm10', title: has(/pm\s*10(?:[.,]0)?(?![.,\d])/i) },
     { measure: 'pm25', title: has(/pm\s*2[.,]?5/i) },
     { measure: 'pm1', title: has(/pm\s*1(?:[.,]0)?(?![.,\d])/i) },
   ],
@@ -87,7 +89,8 @@ export function normalizeUnit(unit) {
     .trim()
     .toLowerCase()
     .replace(/\s+/g, '')
-    .replace(/[μu]g\/m(3|³|\^3)/, 'µg/m³')
+    .replace(/[µμu]g\/m(3|³|\^3)/, 'µg/m³')
+    .replace(/^%r[hf]$/, '%')
     .replace(/^°?celsius$|^grad$/, '°c');
 }
 

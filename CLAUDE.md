@@ -248,9 +248,10 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - **API** : `GET https://api.opensensemap.org/boxes/<id>?format=json` (une boîte, chaque capteur avec
   `lastMeasurement { value, createdAt }`, valeurs en **chaînes**) ; `GET /boxes?near=<lon>,<lat>&maxDistance=<m>`
   pour la recherche. Sans compte. Identifiant inconnu : 404 `{"code":"NotFound"}` ; identifiant mal formé : 422.
-- **`/boxes?near=` sans filtre `date` renvoie toutes les boîtes, mortes comprises, avec `lastMeasurement` réduit à un
-  identifiant** (490 Ko pour 2 km à Münster). Avec `date=<de>,<à>` (fenêtre de 24 h), seules les boîtes actives,
-  avec leurs valeurs : c'est ce que fait la recherche.
+- **`/boxes?near=` renvoie toutes les boîtes, mortes comprises, avec `lastMeasurement` réduit à un identifiant**
+  (1,5 Mo pour 20 km autour de Berlin, en 0,5 s). Le filtre `date=<de>,<à>` ne garderait que les actives, mais
+  **met 25 s côté serveur** (mesuré le 17/10/2026, au-delà du délai de 20 s) : la recherche trie elle-même sur
+  `lastMeasurementAt` (24 h).
 - L'API renvoie toujours la **dernière** mesure, même vieille de deux ans : la fraîcheur se juge sur `createdAt`
   (seuil d'une heure, `STALE_MINUTES`). Une boîte morte peut garder `lastMeasurementAt` sans aucune valeur de
   capteur (fixture `box-toulouse-offline`).
@@ -262,3 +263,7 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Déclencheur `box_offline` : un événement par palier franchi (1, 3, 6, 12, 24, 48 h, valeur du champ `hours` en
   chaîne, comparée par égalité par le cœur), jamais à la première observation ni pour une boîte non ajoutée, et
   seulement après une réponse réussie de l'API (une panne d'openSenseMap n'est pas une boîte hors ligne).
+- Erreurs : une ligne par boîte (clé `box:<id>`) au début et à la fin d'une panne ; « API injoignable » seulement
+  quand **toutes** les boîtes échouent pour une raison réseau, 429 ou 5xx (une seule boîte servie en 500 faisait
+  basculer l'état à chaque cycle). Un événement de scène ne quitte la file qu'une fois accepté par Gladys. Une boîte
+  non ajoutée oublie son palier hors ligne : sa première lecture après l'ajout est une première observation.

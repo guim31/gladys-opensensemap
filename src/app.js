@@ -65,7 +65,7 @@ export function registerHandlers(gladys, { store = new Store(), fetch, timers = 
     let status = { connected: true };
     if (hub.boxIds(config).length === 0) {
       status = { connected: false, message: TEXT.notConfigured };
-    } else if (hub.issues.isFailing('api')) {
+    } else if (hub.apiDown(config)) {
       status = { connected: false, message: TEXT.apiUnreachable };
     }
     const key = JSON.stringify(status);
@@ -144,8 +144,10 @@ export function registerHandlers(gladys, { store = new Store(), fetch, timers = 
     if (!record) {
       return;
     }
+    // Everything goes out once: by the read when there is one, else here.
+    hub.resend.add(record.id);
     await poller.refreshNow([record.id], { maxAgeMs: 60_000 });
-    await hub.publishStates(record, { force: true });
+    await hub.publishStates(record);
     gladys.requestWidgetRefresh(WIDGET_KEY);
   }
   gladys.onDeviceCreated(onDeviceAdded);

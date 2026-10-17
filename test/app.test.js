@@ -64,6 +64,18 @@ test('adding a device sends its states at once, and nudges the widget', async ()
   assert.ok(gladys.fake.widgetRefreshes.includes('box_measurements'));
 });
 
+test('adding a device after a restart reads it once and sends each state once', async () => {
+  const store = new MemoryStore();
+  const first = await createWorld({ fixtures: ['box-toulouse-saint-simon'], store });
+  await first.app.stop();
+  const world = await createWorld({ fixtures: ['box-toulouse-saint-simon'], store });
+  world.advance(10 * 60_000);
+  await createAll(world);
+  const sent = world.gladys.fake.states.map((s) => s.device_feature_external_id);
+  assert.equal(sent.length, 5);
+  assert.equal(new Set(sent).size, 5);
+});
+
 test('pressure in Pa is published in hPa', async () => {
   const world = await createWorld({
     config: { box_ids: OFFLINE },
@@ -189,7 +201,7 @@ test('restart: the boxes come back from /data, even while the API is down', asyn
     devices: first.gladys.fake.devices,
   });
   assert.equal(discovered(second, SIMON).features.length, 5);
-  assert.equal(second.hub.records.get(SIMON).offlineStep, 0);
+  assert.ok(second.hub.records.has(SIMON));
 });
 
 test('an unknown box id: no device, said by the check action', async () => {
@@ -214,4 +226,55 @@ test('a box removed from the configuration is forgotten', async () => {
 test('the requests name the integration in their User-Agent', async () => {
   const world = await createWorld({ fixtures: ['box-toulouse-saint-simon'] });
   assert.match(world.network.calls[0].headers['User-Agent'], /^gladys-opensensemap\//);
+});
+
+test('one box the API fails to serve: no flapping, the status stays connected', async () => {
+  const world = await createWorld({
+    fixtures: ['box-toulouse-saint-simon', 'box-muenster-library'],
+  });
+  await createAll(world);
+  const library = boxIdOf('box-muenster-library');
+  world.network.boxes[library] = { status: 500 };
+  for (let i = 0; i < 3; i += 1) {
+    world.advance(5 * 60_000);
+    await world.app.poller.cycle();
+  }
+  assert.deepEqual(world.gladys.fake.connectionStatus, { connected: true });
+});
+
+test('a box added long after its first read starts from a first look: no burst', async () => {
+  const world = await createWorld({ fixtures: ['box-toulouse-saint-simon'] });
+  // Read once, not added; days later the box is silent, then the user adds it.
+  world.network.boxes[SIMON] = fresh(apiFixture('box-toulouse-saint-simon'), world.clock.now);
+  world.advance(3 * 24 * HOUR);
+  await createAll(world);
+  world.advance(5 * 60_000);
+  await world.app.poller.cycle();
+  assert.deepEqual(world.gladys.fake.sceneEvents, []);
+});
+
+test('a scene event Gladys refused is sent again on the next read', async (t) => {
+  const world = await createWorld({ fixtures: ['box-toulouse-saint-simon'] });
+  await createAll(world);
+  world.network.boxes[SIMON] = fresh(apiFixture('box-toulouse-saint-simon'), world.clock.now);
+  const real = world.gladys.publishSceneEvent.bind(world.gladys);
+  let refuse = true;
+  t.mock.method(world.gladys, 'publishSceneEvent', async (...args) => {
+    if (refuse) {
+      throw new Error('429');
+    }
+    return real(...args);
+  });
+  for (let i = 0; i < 13; i += 1) {
+    world.advance(5 * 60_000);
+    await world.app.poller.cycle();
+  }
+  assert.deepEqual(world.gladys.fake.sceneEvents, []);
+  refuse = false;
+  world.advance(5 * 60_000);
+  await world.app.poller.cycle();
+  assert.deepEqual(
+    world.gladys.fake.sceneEvents.map((e) => e.data.hours),
+    ['1'],
+  );
 });
