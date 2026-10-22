@@ -1,6 +1,6 @@
 {
   "name": "gladys-opensensemap",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Gladys Assistant integration for openSenseMap citizen sensor boxes (senseBox).",
   "type": "module",
